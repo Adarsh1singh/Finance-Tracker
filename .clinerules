@@ -1,0 +1,113 @@
+✅ Core Features
+User Authentication
+
+Signup/Login
+
+Dashboard
+
+Summary of income, expenses, and balance
+
+Transactions
+
+Add/edit/delete income or expense entries
+
+Filter by date, category, or amount
+
+Categories
+
+Customizable (e.g., Food, Rent, Salary, etc.)
+
+Monthly Reports
+
+Charts for income vs. expenses
+
+Budget Tracking
+
+Set monthly budgets per category
+
+Alert if limits are exceeded
+
+Export to CSV/PDF
+
+Download reports
+
+🧱 Tech Stack
+Frontend: React + TailwindCSS or ShadCN
+
+State Management: Redux
+
+Backend: Node.js + Express.js
+
+Database: PostgreSQL (with Prisma)
+
+
+Charts: Recharts or Chart.js
+
+
+backend/
+├── src/
+│   ├── controllers/       # Route handlers (e.g., transactionController.js)
+│   ├── middleware/        # Auth middleware, error handler
+│   ├── routes/            # Express routes
+│   ├── services/          # DB logic or business services
+│   ├── utils/             # Helper functions
+│   ├── prisma/            # Prisma schema and client
+│   ├── index.ts           # Entry point
+│   └── app.ts             # Express app config
+│
+├── prisma/
+│   └── schema.prisma      # Prisma DB schema
+│
+├── package.json
+├── tsconfig.json
+├── .env
+└── README.md
+
+controllers/authController.ts
+
+controllers/transactionController.ts
+
+routes/authRoutes.ts
+
+routes/transactionRoutes.ts
+
+middleware/authMiddleware.ts
+
+utils/generateToken.ts
+
+services/transactionService.ts
+
+
+frontend/
+├── public/
+│   └── index.html
+│
+├── src/
+│   ├── assets/               # Logos, icons, static files
+│   ├── components/           # Shared UI components
+│   │   ├── layout/           # Navbar, Sidebar, etc.
+│   │   ├── charts/           # Recharts or Chart.js
+│   │   └── ui/               # Wrapped ShadCN components
+│   │
+│   ├── features/             # Feature-specific UI + logic
+│   │   ├── auth/             # Login, Register
+│   │   ├── dashboard/        # Overview and charts
+│   │   ├── transactions/     # CRUD for transactions
+│   │   └── reports/          # Analytics and charts
+│   │
+│   ├── hooks/                # Custom hooks
+│   ├── lib/                  # API client, utils, constants
+│   ├── routes/               # All route declarations
+│   ├── services/             # Axios API wrappers
+│   ├── App.tsx               # Main App component
+│   ├── main.tsx              # Vite entry point
+│   └── index.css             # Tailwind styles
+│
+├── package.json
+├── tailwind.config.js
+├── postcss.config.js
+├── tsconfig.json
+└── .env
+
+
+
