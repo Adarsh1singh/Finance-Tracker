@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-export const authenticateToken = async (
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -86,3 +86,6 @@ export const optionalAuth = async (
     next();
   }
 };
+
+// Export both names for compatibility
+export const authenticateToken = authMiddleware;

@@ -3,7 +3,8 @@ import { Toaster } from 'react-hot-toast';
 
 // Pages
 import AuthPage from './pages/AuthPage';
-import DashboardPage from './pages/DashboardPage';
+import EnhancedDashboard from './pages/EnhancedDashboard';
+import TransactionsPage from './pages/TransactionsPage';
 
 // Services
 import { authService } from './services/authService';
@@ -11,6 +12,7 @@ import { authService } from './services/authService';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'transactions'>('dashboard');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -42,6 +44,15 @@ function App() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setCurrentPage('dashboard');
+  };
+
+  const handleNavigateToTransactions = () => {
+    setCurrentPage('transactions');
+  };
+
+  const handleNavigateBack = () => {
+    setCurrentPage('dashboard');
   };
 
   if (isLoading) {
@@ -52,16 +63,31 @@ function App() {
     );
   }
 
+  const renderPage = () => {
+    if (!isAuthenticated) {
+      return <AuthPage onAuthSuccess={handleAuthSuccess} />;
+    }
+
+    switch (currentPage) {
+      case 'transactions':
+        return <TransactionsPage onNavigateBack={handleNavigateBack} />;
+      case 'dashboard':
+      default:
+        return (
+          <EnhancedDashboard
+            onLogout={handleLogout}
+            onNavigateToTransactions={handleNavigateToTransactions}
+          />
+        );
+    }
+  };
+
   return (
     <>
-      {isAuthenticated ? (
-        <DashboardPage onLogout={handleLogout} />
-      ) : (
-        <AuthPage onAuthSuccess={handleAuthSuccess} />
-      )}
-      
-      <Toaster 
-        position="top-center" 
+      {renderPage()}
+
+      <Toaster
+        position="top-center"
         reverseOrder={false}
         toastOptions={{
           duration: 4000,

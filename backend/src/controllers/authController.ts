@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { prisma } from '../config/database';
 import { generateToken } from '../utils/generateToken';
+import { createDefaultCategories } from './categoryController';
 
 // Register User
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -56,6 +57,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         createdAt: true
       }
     });
+
+    // Create default categories for the new user
+    await createDefaultCategories(user.id);
 
     // Generate token
     const token = generateToken({

@@ -1,45 +1,72 @@
-import app from './app';
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
 import { prisma } from './config/database';
+import authRoutes from './routes/authRoutes';
+import transactionRoutes from './routes/transactionRoutes';
+import categoryRoutes from './routes/categoryRoutes';
+import analyticsRoutes from './routes/analyticsRoutes';
+import budgetRoutes from './routes/budgetRoutes';
 
+// Load environment variables
+dotenv.config();
+
+const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Test database connection
-async function testDatabaseConnection() {
-  try {
-    await prisma.$connect();
-    console.log('✅ Database connected successfully');
-  } catch (error) {
-    console.error('❌ Database connection failed:', error);
-    process.exit(1);
-  }
-}
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
 
-// Graceful shutdown
-async function gracefulShutdown() {
-  console.log('\n🔄 Shutting down gracefully...');
-  
-  try {
-    await prisma.$disconnect();
-    console.log('✅ Database disconnected');
-    process.exit(0);
-  } catch (error) {
-    console.error('❌ Error during shutdown:', error);
-    process.exit(1);
-  }
-}
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Handle shutdown signals
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/budgets', budgetRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Expense Tracker API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+    path: req.originalUrl
+  });
+});
+
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Global error handler:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { error: err.message })
+  });
+});
 
 // Start server
 async function startServer() {
   try {
-    await testDatabaseConnection();
-    
+    // Test database connection
+    await prisma.$connect();
+    console.log('✅ Database connected successfully');
+
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🔗 API URL: http://localhost:${PORT}/api`);
       console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
     });

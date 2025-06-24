@@ -1,4 +1,4 @@
-import { apiService, type ApiResponse } from './api';
+import { apiService } from './api';
 
 export interface User {
   id: number;

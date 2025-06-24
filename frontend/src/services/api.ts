@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -76,3 +76,44 @@ class ApiService {
 }
 
 export const apiService = new ApiService(API_BASE_URL);
+
+// Transaction API
+export const transactionAPI = {
+  getAll: (params?: any) => apiService.get(`/transactions${params ? `?${new URLSearchParams(params)}` : ''}`),
+  getById: (id: number) => apiService.get(`/transactions/${id}`),
+  create: (data: any) => apiService.post('/transactions', data),
+  update: (id: number, data: any) => apiService.put(`/transactions/${id}`, data),
+  delete: (id: number) => apiService.delete(`/transactions/${id}`)
+};
+
+// Category API
+export const categoryAPI = {
+  getAll: (type?: string) => apiService.get(`/categories${type ? `?type=${type}` : ''}`),
+  create: (data: any) => apiService.post('/categories', data),
+  update: (id: number, data: any) => apiService.put(`/categories/${id}`, data),
+  delete: (id: number) => apiService.delete(`/categories/${id}`),
+  createDefaults: () => apiService.post('/categories/create-defaults', {})
+};
+
+// Analytics API
+export const analyticsAPI = {
+  getDashboard: (period?: string) => apiService.get(`/analytics/dashboard${period ? `?period=${period}` : ''}`),
+  getExpensesByCategory: (period?: string) => apiService.get(`/analytics/expenses-by-category${period ? `?period=${period}` : ''}`),
+  getMonthlyTrends: (months?: number) => apiService.get(`/analytics/monthly-trends${months ? `?months=${months}` : ''}`),
+  exportData: (format?: string, startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams();
+    if (format) params.append('format', format);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    return apiService.get(`/analytics/export?${params}`);
+  }
+};
+
+// Budget API
+export const budgetAPI = {
+  getAll: (params?: any) => apiService.get(`/budgets${params ? `?${new URLSearchParams(params)}` : ''}`),
+  getById: (id: number) => apiService.get(`/budgets/${id}`),
+  create: (data: any) => apiService.post('/budgets', data),
+  update: (id: number, data: any) => apiService.put(`/budgets/${id}`, data),
+  delete: (id: number) => apiService.delete(`/budgets/${id}`)
+};

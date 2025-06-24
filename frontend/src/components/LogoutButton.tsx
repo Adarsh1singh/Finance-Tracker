@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router";
-import { logout } from "../services/authService";
+import { authService } from "../services/authService";
 
 const LogoutButton = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    authService.logout();
     navigate("/login");
     localStorage.setItem('isLoggenIn', 'false');
   };

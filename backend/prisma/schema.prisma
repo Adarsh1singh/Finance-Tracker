@@ -20,14 +20,17 @@ model User {
 
   // Relations for future features
   transactions Transaction[]
+  categories   Category[]
+  budgets      Budget[]
 
   @@map("users")
 }
 
 model Transaction {
   id          Int             @id @default(autoincrement())
+  name        String          // Name of the expense/income
   amount      Float
-  description String
+  description String?         // Optional description
   category    String
   type        TransactionType @default(EXPENSE)
   date        DateTime        @default(now())
@@ -39,6 +42,41 @@ model Transaction {
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("transactions")
+}
+
+model Category {
+  id        Int             @id @default(autoincrement())
+  name      String
+  type      TransactionType
+  color     String?         // Hex color for UI
+  icon      String?         // Icon name
+  isDefault Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  // Foreign key
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([name, userId, type])
+  @@map("categories")
+}
+
+model Budget {
+  id        Int      @id @default(autoincrement())
+  category  String
+  amount    Float
+  period    String   // 'monthly', 'weekly', 'yearly'
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Foreign key
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("budgets")
 }
 
 enum TransactionType {
