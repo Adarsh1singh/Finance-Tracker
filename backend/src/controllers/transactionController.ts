@@ -92,7 +92,10 @@ export const getTransactions = async (req: Request, res: Response): Promise<void
     const [transactions, total] = await Promise.all([
       prisma.transaction.findMany({
         where,
-        orderBy: { date: 'desc' },
+        orderBy: [
+          { date: 'desc' },
+          { createdAt: 'desc' }
+        ],
         skip,
         take: Number(limit)
       }),

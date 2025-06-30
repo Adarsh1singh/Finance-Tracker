@@ -168,13 +168,17 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
         if (response.success) {
           toast.success('Transaction updated successfully');
           setEditingTransaction(null);
+          // Reload transactions to show the updated data
+          await loadTransactions();
         }
       } else {
         const response = await transactionAPI.create(data);
         if (response.success) {
           toast.success('Transaction added successfully');
-          // Reset to first page to show the newly added transaction (since it will be at the top)
+          // Reset to first page and force reload
           setPagination(prev => ({ ...prev, page: 1 }));
+          // Force reload of transactions to show the new one
+          await loadTransactions();
         }
       }
 
@@ -187,7 +191,6 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
         date: new Date().toISOString().split('T')[0]
       });
       setShowAddForm(false);
-      // Data will be reloaded automatically due to useEffect dependency on pagination.page
     } catch (error) {
       toast.error('Failed to save transaction');
     }
