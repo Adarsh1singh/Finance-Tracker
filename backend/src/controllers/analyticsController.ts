@@ -147,17 +147,52 @@ export const getExpensesByCategory = async (req: Request, res: Response): Promis
       return acc;
     }, {} as Record<string, { color?: string; icon?: string }>);
 
-    const chartData = expensesByCategory.map(item => ({
+    // Generate better colors for categories
+    const colors = [
+      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+      '#FF9F40', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
+      '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'
+    ];
+
+    const chartData = expensesByCategory.map((item, index) => ({
       category: item.category,
       amount: item._sum.amount || 0,
-      color: categoryMap[item.category]?.color || '#BDC3C7',
+      color: categoryMap[item.category]?.color || colors[index % colors.length],
       icon: categoryMap[item.category]?.icon || '📦'
     }));
+
+    // If no expenses found, provide sample structure with user's categories
+    if (chartData.length === 0) {
+      const sampleData = categories.slice(0, 3).map((cat, index) => ({
+        category: cat.name,
+        amount: 0,
+        color: cat.color || colors[index],
+        icon: cat.icon || '📦'
+      }));
+
+      return res.status(200).json({
+        success: true,
+        message: 'No expenses found for this period',
+        data: {
+          chartData: sampleData,
+          period,
+          total: 0,
+          isEmpty: true
+        }
+      });
+    }
+
+    const total = chartData.reduce((sum, item) => sum + item.amount, 0);
 
     res.status(200).json({
       success: true,
       message: 'Expenses by category retrieved successfully',
-      data: { chartData, period }
+      data: {
+        chartData,
+        period,
+        total,
+        isEmpty: false
+      }
     });
   } catch (error) {
     console.error('Get expenses by category error:', error);

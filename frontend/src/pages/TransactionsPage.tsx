@@ -7,12 +7,15 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
-  ArrowLeft
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { transactionAPI, categoryAPI } from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import Modal from '@/components/ui/Modal';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -35,6 +38,13 @@ interface Category {
   icon?: string;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
 
 
 interface TransactionsPageProps {
@@ -47,9 +57,23 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategoryForm, setNewCategoryForm] = useState({
+    name: '',
+    icon: '📦',
+    color: '#FF6384'
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL');
   const [filterCategory, setFilterCategory] = useState('');
+
+  // Pagination state (backend-driven)
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0
+  });
 
   // Form state
   const [formData, setFormData] = useState({
@@ -65,30 +89,63 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
     loadData();
   }, []);
 
+  // Load data when pagination or filters change
+  useEffect(() => {
+    loadTransactions();
+  }, [pagination.page, pagination.limit, searchTerm, filterType, filterCategory]);
+
   const loadData = async () => {
     try {
       setIsLoading(true);
-
-      const [transactionsResponse, categoriesResponse] = await Promise.all([
-        transactionAPI.getAll(),
-        categoryAPI.getAll()
+      await Promise.all([
+        loadTransactions(),
+        loadCategories()
       ]);
-
-      if (transactionsResponse.success) {
-        setTransactions((transactionsResponse.data as any)?.transactions || []);
-      }
-
-      if (categoriesResponse.success) {
-        setCategories((categoriesResponse.data as any)?.categories || []);
-      } else {
-        console.error('Categories response:', categoriesResponse);
-        toast.error('Failed to load categories. Please refresh the page.');
-      }
     } catch (error) {
       console.error('Failed to load data:', error);
       toast.error('Failed to load data. Please check your connection.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadTransactions = async () => {
+    try {
+      // Build query parameters for backend pagination
+      const params: any = {
+        page: pagination.page,
+        limit: pagination.limit
+      };
+
+      if (searchTerm) params.search = searchTerm;
+      if (filterType !== 'ALL') params.type = filterType;
+      if (filterCategory) params.category = filterCategory;
+
+      const response = await transactionAPI.getAll(params);
+
+      if (response.success) {
+        const data = response.data as any;
+        setTransactions(data?.transactions || []);
+        setPagination(data?.pagination || pagination);
+      }
+    } catch (error) {
+      console.error('Failed to load transactions:', error);
+      toast.error('Failed to load transactions.');
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const response = await categoryAPI.getAll();
+      if (response.success) {
+        setCategories((response.data as any)?.categories || []);
+      } else {
+        console.error('Categories response:', response);
+        toast.error('Failed to load categories. Please refresh the page.');
+      }
+    } catch (error) {
+      console.error('Failed to load categories:', error);
+      toast.error('Failed to load categories.');
     }
   };
 
@@ -116,6 +173,8 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
         const response = await transactionAPI.create(data);
         if (response.success) {
           toast.success('Transaction added successfully');
+          // Reset to first page to show the newly added transaction (since it will be at the top)
+          setPagination(prev => ({ ...prev, page: 1 }));
         }
       }
 
@@ -128,7 +187,7 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
         date: new Date().toISOString().split('T')[0]
       });
       setShowAddForm(false);
-      loadData();
+      // Data will be reloaded automatically due to useEffect dependency on pagination.page
     } catch (error) {
       toast.error('Failed to save transaction');
     }
@@ -156,23 +215,91 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
       const response = await transactionAPI.delete(id);
       if (response.success) {
         toast.success('Transaction deleted successfully');
-        loadData();
+        // If we're on a page with only one item and it's not the first page, go back one page
+        if (transactions.length === 1 && pagination.page > 1) {
+          setPagination(prev => ({ ...prev, page: prev.page - 1 }));
+        } else {
+          // Reload current page
+          loadTransactions();
+        }
       }
     } catch (error) {
       toast.error('Failed to delete transaction');
     }
   };
 
-  const filteredTransactions = transactions.filter(transaction => {
-    const matchesSearch = transaction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'ALL' || transaction.type === filterType;
-    const matchesCategory = !filterCategory || transaction.category === filterCategory;
-    
-    return matchesSearch && matchesType && matchesCategory;
-  });
+  // Filter change handlers that reset to page 1
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
 
-  const availableCategories = categories.filter(cat => 
+  const handleTypeFilterChange = (value: 'ALL' | 'INCOME' | 'EXPENSE') => {
+    setFilterType(value);
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const handleCategoryFilterChange = (value: string) => {
+    setFilterCategory(value);
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const handleItemsPerPageChange = (value: number) => {
+    setPagination(prev => ({ ...prev, limit: value, page: 1 }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setPagination(prev => ({ ...prev, page }));
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilterType('ALL');
+    setFilterCategory('');
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newCategoryForm.name.trim()) {
+      toast.error('Category name is required');
+      return;
+    }
+
+    try {
+      const categoryData = {
+        name: newCategoryForm.name.trim(),
+        type: formData.type,
+        icon: newCategoryForm.icon,
+        color: newCategoryForm.color
+      };
+
+      const response = await categoryAPI.create(categoryData);
+      if (response.success) {
+        toast.success('Category created successfully');
+
+        // Reload categories
+        await loadCategories();
+
+        // Set the new category as selected
+        setFormData(prev => ({ ...prev, category: newCategoryForm.name.trim() }));
+
+        // Reset form and close modal
+        setNewCategoryForm({ name: '', icon: '📦', color: '#FF6384' });
+        setShowCategoryModal(false);
+      }
+    } catch (error) {
+      toast.error('Failed to create category');
+    }
+  };
+
+  const handleOpenCategoryModal = () => {
+    setNewCategoryForm({ name: '', icon: '📦', color: '#FF6384' });
+    setShowCategoryModal(true);
+  };
+
+  const availableCategories = categories.filter(cat =>
     filterType === 'ALL' || cat.type === filterType || cat.type === formData.type
   );
 
@@ -232,7 +359,7 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
 
           {/* Filters */}
           <div className="bg-white p-4 rounded-lg shadow mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div>
                 <Label htmlFor="search">Search</Label>
                 <div className="relative">
@@ -241,7 +368,7 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
                     id="search"
                     placeholder="Search transactions..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className="pl-10"
                   />
                 </div>
@@ -252,7 +379,7 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
                 <select
                   id="type-filter"
                   value={filterType}
-                  onChange={(e) => setFilterType(e.target.value as any)}
+                  onChange={(e) => handleTypeFilterChange(e.target.value as any)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
                   <option value="ALL">All Types</option>
@@ -266,7 +393,7 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
                 <select
                   id="category-filter"
                   value={filterCategory}
-                  onChange={(e) => setFilterCategory(e.target.value)}
+                  onChange={(e) => handleCategoryFilterChange(e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
                   <option value="">All Categories</option>
@@ -277,15 +404,26 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
                   ))}
                 </select>
               </div>
-              
+
+              <div>
+                <Label htmlFor="items-per-page">Items per page</Label>
+                <select
+                  id="items-per-page"
+                  value={pagination.limit}
+                  onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                >
+                  <option value={5}>5 per page</option>
+                  <option value={10}>10 per page</option>
+                  <option value={20}>20 per page</option>
+                  <option value={50}>50 per page</option>
+                </select>
+              </div>
+
               <div className="flex items-end">
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setSearchTerm('');
-                    setFilterType('ALL');
-                    setFilterCategory('');
-                  }}
+                  onClick={clearFilters}
                   className="w-full"
                 >
                   Clear Filters
@@ -342,22 +480,34 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
                 
                 <div>
                   <Label htmlFor="category">Category *</Label>
-                  <select
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {availableCategories
-                      .filter(cat => cat.type === formData.type)
-                      .map(category => (
-                        <option key={category.id} value={category.name}>
-                          {category.icon} {category.name}
-                        </option>
-                      ))}
-                  </select>
+                  <div className="space-y-2">
+                    <select
+                      id="category"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      required
+                    >
+                      <option value="">Select a category</option>
+                      {availableCategories
+                        .filter(cat => cat.type === formData.type)
+                        .map(category => (
+                          <option key={category.id} value={category.name}>
+                            {category.icon} {category.name}
+                          </option>
+                        ))}
+                    </select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleOpenCategoryModal}
+                      className="w-full flex items-center justify-center space-x-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Add New Category</span>
+                    </Button>
+                  </div>
                 </div>
                 
                 <div>
@@ -402,11 +552,18 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
           {/* Transactions Table */}
           <div className="bg-white shadow rounded-lg overflow-hidden">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                Transactions ({filteredTransactions.length})
-              </h3>
-              
-              {filteredTransactions.length === 0 ? (
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  Transactions ({pagination.total})
+                </h3>
+                {pagination.pages > 1 && (
+                  <div className="text-sm text-gray-500">
+                    Page {pagination.page} of {pagination.pages}
+                  </div>
+                )}
+              </div>
+
+              {transactions.length === 0 ? (
                 <div className="text-center py-8">
                   <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-2 text-sm font-medium text-gray-900">No transactions</h3>
@@ -440,7 +597,7 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredTransactions.map((transaction) => {
+                      {transactions.map((transaction: Transaction) => {
                         // Find the category details to get icon
                         const categoryDetails = categories.find(cat => cat.name === transaction.category);
 
@@ -524,10 +681,194 @@ const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
                   </table>
                 </div>
               )}
+
+              {/* Pagination Controls */}
+              {pagination.pages > 1 && (
+                <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4">
+                  <div className="flex flex-1 justify-between sm:hidden">
+                    <Button
+                      variant="outline"
+                      onClick={() => handlePageChange(Math.max(1, pagination.page - 1))}
+                      disabled={pagination.page === 1}
+                      className="relative inline-flex items-center px-4 py-2 text-sm font-medium"
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handlePageChange(Math.min(pagination.pages, pagination.page + 1))}
+                      disabled={pagination.page === pagination.pages}
+                      className="relative ml-3 inline-flex items-center px-4 py-2 text-sm font-medium"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                  <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Showing{' '}
+                        <span className="font-medium">{((pagination.page - 1) * pagination.limit) + 1}</span>
+                        {' '}to{' '}
+                        <span className="font-medium">
+                          {Math.min(pagination.page * pagination.limit, pagination.total)}
+                        </span>
+                        {' '}of{' '}
+                        <span className="font-medium">{pagination.total}</span>
+                        {' '}results
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                        <Button
+                          variant="outline"
+                          onClick={() => handlePageChange(Math.max(1, pagination.page - 1))}
+                          disabled={pagination.page === 1}
+                          className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        >
+                          <span className="sr-only">Previous</span>
+                          <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                        </Button>
+
+                        {/* Page Numbers */}
+                        {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((page) => {
+                          // Show first page, last page, current page, and pages around current page
+                          const showPage = page === 1 ||
+                                         page === pagination.pages ||
+                                         Math.abs(page - pagination.page) <= 1;
+
+                          if (!showPage && page === 2 && pagination.page > 4) {
+                            return (
+                              <span key="ellipsis1" className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
+                                ...
+                              </span>
+                            );
+                          }
+
+                          if (!showPage && page === pagination.pages - 1 && pagination.page < pagination.pages - 3) {
+                            return (
+                              <span key="ellipsis2" className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
+                                ...
+                              </span>
+                            );
+                          }
+
+                          if (!showPage) return null;
+
+                          return (
+                            <Button
+                              key={page}
+                              variant={pagination.page === page ? "default" : "outline"}
+                              onClick={() => handlePageChange(page)}
+                              className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                                pagination.page === page
+                                  ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                                  : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                              }`}
+                            >
+                              {page}
+                            </Button>
+                          );
+                        })}
+
+                        <Button
+                          variant="outline"
+                          onClick={() => handlePageChange(Math.min(pagination.pages, pagination.page + 1))}
+                          disabled={pagination.page === pagination.pages}
+                          className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        >
+                          <span className="sr-only">Next</span>
+                          <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                        </Button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </main>
+
+      {/* New Category Modal */}
+      <Modal
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        title="Create New Category"
+        size="md"
+      >
+        <form onSubmit={handleCreateCategory} className="space-y-4">
+          <div>
+            <Label htmlFor="categoryName">Category Name *</Label>
+            <Input
+              id="categoryName"
+              value={newCategoryForm.name}
+              onChange={(e) => setNewCategoryForm({ ...newCategoryForm, name: e.target.value })}
+              placeholder="e.g., Groceries, Gas, Entertainment"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="categoryIcon">Icon</Label>
+            <div className="grid grid-cols-8 gap-2 mt-2">
+              {['🍽️', '🚗', '🛍️', '🎬', '💡', '🏥', '📚', '✈️', '🏠', '💄', '💰', '💻', '📈', '🏢', '💵', '📦'].map(icon => (
+                <button
+                  key={icon}
+                  type="button"
+                  onClick={() => setNewCategoryForm({ ...newCategoryForm, icon })}
+                  className={`p-2 text-xl border rounded hover:bg-gray-50 ${
+                    newCategoryForm.icon === icon ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                  }`}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="categoryColor">Color</Label>
+            <div className="grid grid-cols-8 gap-2 mt-2">
+              {['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#BDC3C7'].map(color => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setNewCategoryForm({ ...newCategoryForm, color })}
+                  className={`w-8 h-8 rounded border-2 ${
+                    newCategoryForm.color === color ? 'border-gray-800' : 'border-gray-300'
+                  }`}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-600">
+            <strong>Preview:</strong>
+            <span className="ml-2 inline-flex items-center">
+              <span className="mr-1">{newCategoryForm.icon}</span>
+              <span>{newCategoryForm.name || 'Category Name'}</span>
+              <span
+                className="ml-2 w-3 h-3 rounded-full"
+                style={{ backgroundColor: newCategoryForm.color }}
+              ></span>
+            </span>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowCategoryModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit">
+              Create Category
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

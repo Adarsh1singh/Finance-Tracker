@@ -45,9 +45,11 @@ interface ExpenseData {
 interface DashboardPageProps {
   onLogout: () => void;
   onNavigateToTransactions: () => void;
+  onNavigateToBudgets: () => void;
+  onNavigateToReports: () => void;
 }
 
-const EnhancedDashboard = ({ onLogout, onNavigateToTransactions }: DashboardPageProps) => {
+const EnhancedDashboard = ({ onLogout, onNavigateToTransactions, onNavigateToBudgets, onNavigateToReports }: DashboardPageProps) => {
   const [user, setUser] = useState<UserType | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [expensesByCategory, setExpensesByCategory] = useState<ExpenseData[]>([]);
@@ -409,6 +411,7 @@ const EnhancedDashboard = ({ onLogout, onNavigateToTransactions }: DashboardPage
                 </Button>
                 <Button
                   variant="outline"
+                  onClick={onNavigateToReports}
                   className="flex items-center justify-center space-x-2 h-12"
                 >
                   <PieChart className="h-5 w-5" />
@@ -416,6 +419,7 @@ const EnhancedDashboard = ({ onLogout, onNavigateToTransactions }: DashboardPage
                 </Button>
                 <Button
                   variant="outline"
+                  onClick={onNavigateToBudgets}
                   className="flex items-center justify-center space-x-2 h-12"
                 >
                   <BarChart3 className="h-5 w-5" />

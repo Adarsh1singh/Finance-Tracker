@@ -5,6 +5,8 @@ import { Toaster } from 'react-hot-toast';
 import AuthPage from './pages/AuthPage';
 import EnhancedDashboard from './pages/EnhancedDashboard';
 import TransactionsPage from './pages/TransactionsPage';
+import BudgetPage from './pages/BudgetPage';
+import ReportsPage from './pages/ReportsPage';
 
 // Services
 import { authService } from './services/authService';
@@ -12,7 +14,7 @@ import { authService } from './services/authService';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'transactions'>('dashboard');
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'transactions' | 'budgets' | 'reports'>('dashboard');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -51,6 +53,14 @@ function App() {
     setCurrentPage('transactions');
   };
 
+  const handleNavigateToBudgets = () => {
+    setCurrentPage('budgets');
+  };
+
+  const handleNavigateToReports = () => {
+    setCurrentPage('reports');
+  };
+
   const handleNavigateBack = () => {
     setCurrentPage('dashboard');
   };
@@ -70,13 +80,34 @@ function App() {
 
     switch (currentPage) {
       case 'transactions':
-        return <TransactionsPage onNavigateBack={handleNavigateBack} />;
+        return (
+          <TransactionsPage
+            onNavigateBack={handleNavigateBack}
+            onLogout={handleLogout}
+          />
+        );
+      case 'budgets':
+        return (
+          <BudgetPage
+            onNavigateBack={handleNavigateBack}
+            onLogout={handleLogout}
+          />
+        );
+      case 'reports':
+        return (
+          <ReportsPage
+            onNavigateBack={handleNavigateBack}
+            onLogout={handleLogout}
+          />
+        );
       case 'dashboard':
       default:
         return (
           <EnhancedDashboard
             onLogout={handleLogout}
             onNavigateToTransactions={handleNavigateToTransactions}
+            onNavigateToBudgets={handleNavigateToBudgets}
+            onNavigateToReports={handleNavigateToReports}
           />
         );
     }

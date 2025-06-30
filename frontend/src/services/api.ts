@@ -95,6 +95,18 @@ export const categoryAPI = {
   createDefaults: () => apiService.post('/categories/create-defaults', {})
 };
 
+// Budget API
+export const budgetAPI = {
+  getAll: (params?: any) => {
+    const queryParams = new URLSearchParams(params || {});
+    return apiService.get(`/budgets?${queryParams}`);
+  },
+  getById: (id: number) => apiService.get(`/budgets/${id}`),
+  create: (data: any) => apiService.post('/budgets', data),
+  update: (id: number, data: any) => apiService.put(`/budgets/${id}`, data),
+  delete: (id: number) => apiService.delete(`/budgets/${id}`)
+};
+
 // Analytics API
 export const analyticsAPI = {
   getDashboard: (period?: string) => apiService.get(`/analytics/dashboard${period ? `?period=${period}` : ''}`),
@@ -109,11 +121,4 @@ export const analyticsAPI = {
   }
 };
 
-// Budget API
-export const budgetAPI = {
-  getAll: (params?: any) => apiService.get(`/budgets${params ? `?${new URLSearchParams(params)}` : ''}`),
-  getById: (id: number) => apiService.get(`/budgets/${id}`),
-  create: (data: any) => apiService.post('/budgets', data),
-  update: (id: number, data: any) => apiService.put(`/budgets/${id}`, data),
-  delete: (id: number) => apiService.delete(`/budgets/${id}`)
-};
+
