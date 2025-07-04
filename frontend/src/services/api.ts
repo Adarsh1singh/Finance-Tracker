@@ -112,6 +112,13 @@ export const analyticsAPI = {
   getDashboard: (period?: string) => apiService.get(`/analytics/dashboard${period ? `?period=${period}` : ''}`),
   getExpensesByCategory: (period?: string) => apiService.get(`/analytics/expenses-by-category${period ? `?period=${period}` : ''}`),
   getMonthlyTrends: (months?: number) => apiService.get(`/analytics/monthly-trends${months ? `?months=${months}` : ''}`),
+  getTopSpendingCategories: (period?: string, limit?: number) => {
+    const params = new URLSearchParams();
+    if (period) params.append('period', period);
+    if (limit) params.append('limit', limit.toString());
+    return apiService.get(`/analytics/top-spending-categories?${params}`);
+  },
+  getCumulativeBalance: (period?: string) => apiService.get(`/analytics/cumulative-balance${period ? `?period=${period}` : ''}`),
   exportData: (format?: string, startDate?: string, endDate?: string) => {
     const params = new URLSearchParams();
     if (format) params.append('format', format);

@@ -170,7 +170,7 @@ export const getExpensesByCategory = async (req: Request, res: Response): Promis
         icon: cat.icon || '📦'
       }));
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
         message: 'No expenses found for this period',
         data: {
@@ -180,6 +180,7 @@ export const getExpensesByCategory = async (req: Request, res: Response): Promis
           isEmpty: true
         }
       });
+      return;
     }
 
     const total = chartData.reduce((sum, item) => sum + item.amount, 0);
@@ -319,6 +320,189 @@ export const exportData = async (req: Request, res: Response): Promise<void> => 
     }
   } catch (error) {
     console.error('Export data error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+// Get Top Spending Categories
+export const getTopSpendingCategories = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    const { period = 'month', limit = 10 } = req.query;
+
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    // Calculate date range
+    const now = new Date();
+    let startDate: Date;
+
+    switch (period) {
+      case 'week':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        break;
+      case 'quarter':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      case 'month':
+      default:
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+    }
+
+    const topSpending = await prisma.transaction.groupBy({
+      by: ['category'],
+      where: {
+        userId,
+        type: TransactionType.EXPENSE,
+        date: { gte: startDate }
+      },
+      _sum: {
+        amount: true
+      },
+      orderBy: {
+        _sum: {
+          amount: 'desc'
+        }
+      },
+      take: parseInt(limit as string)
+    });
+
+    // Get category details
+    const categories = await prisma.category.findMany({
+      where: {
+        userId,
+        type: TransactionType.EXPENSE
+      }
+    });
+
+    const categoryMap = categories.reduce((acc, cat) => {
+      acc[cat.name] = {
+        color: cat.color || undefined,
+        icon: cat.icon || undefined
+      };
+      return acc;
+    }, {} as Record<string, { color?: string; icon?: string }>);
+
+    // Generate colors for categories
+    const colors = [
+      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+      '#FF9F40', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
+      '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE'
+    ];
+
+    const chartData = topSpending.map((item, index) => ({
+      category: item.category,
+      amount: item._sum.amount || 0,
+      color: categoryMap[item.category]?.color || colors[index % colors.length],
+      icon: categoryMap[item.category]?.icon || '📦'
+    }));
+
+    const total = chartData.reduce((sum, item) => sum + item.amount, 0);
+
+    res.status(200).json({
+      success: true,
+      message: 'Top spending categories retrieved successfully',
+      data: {
+        chartData,
+        period,
+        total,
+        limit: parseInt(limit as string)
+      }
+    });
+  } catch (error) {
+    console.error('Get top spending categories error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+// Get Cumulative Balance
+export const getCumulativeBalance = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    const { period = 'month' } = req.query;
+
+    if (!userId) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    // Calculate date range
+    const now = new Date();
+    let startDate: Date;
+
+    switch (period) {
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'quarter':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      case 'month':
+      default:
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+    }
+
+    // Get all transactions in the period, ordered by date
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        userId,
+        date: { gte: startDate }
+      },
+      orderBy: { date: 'asc' },
+      select: {
+        date: true,
+        amount: true,
+        type: true
+      }
+    });
+
+    // Calculate cumulative balance
+    let runningBalance = 0;
+    const balanceData: { date: string; balance: number }[] = [];
+    const dailyBalances = new Map<string, number>();
+
+    // Group transactions by date and calculate daily net
+    transactions.forEach(transaction => {
+      const dateStr = transaction.date.toISOString().split('T')[0];
+      const amount = transaction.type === TransactionType.INCOME ? transaction.amount : -transaction.amount;
+
+      if (!dailyBalances.has(dateStr)) {
+        dailyBalances.set(dateStr, 0);
+      }
+      dailyBalances.set(dateStr, dailyBalances.get(dateStr)! + amount);
+    });
+
+    // Create cumulative balance array
+    const sortedDates = Array.from(dailyBalances.keys()).sort();
+    sortedDates.forEach(dateStr => {
+      runningBalance += dailyBalances.get(dateStr)!;
+      balanceData.push({
+        date: dateStr,
+        balance: runningBalance
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Cumulative balance retrieved successfully',
+      data: {
+        chartData: balanceData,
+        period,
+        currentBalance: runningBalance
+      }
+    });
+  } catch (error) {
+    console.error('Get cumulative balance error:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

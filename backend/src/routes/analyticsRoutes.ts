@@ -4,6 +4,8 @@ import {
   getDashboardSummary,
   getExpensesByCategory,
   getMonthlyTrends,
+  getTopSpendingCategories,
+  getCumulativeBalance,
   exportData
 } from '../controllers/analyticsController';
 
@@ -16,6 +18,8 @@ router.use(authMiddleware);
 router.get('/dashboard', getDashboardSummary);
 router.get('/expenses-by-category', getExpensesByCategory);
 router.get('/monthly-trends', getMonthlyTrends);
+router.get('/top-spending-categories', getTopSpendingCategories);
+router.get('/cumulative-balance', getCumulativeBalance);
 router.get('/export', exportData);
 
 export default router;

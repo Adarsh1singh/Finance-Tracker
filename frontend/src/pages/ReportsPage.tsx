@@ -4,9 +4,7 @@ import {
   PieChart,
   TrendingUp,
   TrendingDown,
-  Calendar,
   Download,
-  Filter
 } from 'lucide-react';
 import { analyticsAPI } from '@/services/api';
 import { Button } from '@/components/ui/Button';
@@ -49,38 +47,51 @@ const ReportsPage = ({ onNavigateBack, onLogout }: ReportsPageProps) => {
   const loadReportsData = async () => {
     try {
       setIsLoading(true);
-      
-      const [
-        expensesResponse,
-        monthlyResponse,
-        topSpendingResponse,
-        balanceResponse
-      ] = await Promise.all([
-        analyticsAPI.getExpensesByCategory(period),
-        analyticsAPI.getMonthlyTrends(6),
-        analyticsAPI.getTopSpendingCategories(period, 10),
-        analyticsAPI.getCumulativeBalance(period)
-      ]);
 
-      if (expensesResponse.success) {
-        setExpensesByCategory((expensesResponse.data as any)?.chartData || []);
+      // Load data with individual error handling
+      try {
+        const expensesResponse = await analyticsAPI.getExpensesByCategory(period);
+        if (expensesResponse.success) {
+          setExpensesByCategory((expensesResponse.data as any)?.chartData || []);
+        }
+      } catch (error) {
+        console.error('Failed to load expenses by category:', error);
+        setExpensesByCategory([]);
       }
 
-      if (monthlyResponse.success) {
-        setMonthlyTrends((monthlyResponse.data as any)?.chartData || []);
+      try {
+        const monthlyResponse = await analyticsAPI.getMonthlyTrends(6);
+        if (monthlyResponse.success) {
+          setMonthlyTrends((monthlyResponse.data as any)?.chartData || []);
+        }
+      } catch (error) {
+        console.error('Failed to load monthly trends:', error);
+        setMonthlyTrends([]);
       }
 
-      if (topSpendingResponse.success) {
-        setTopSpendingCategories((topSpendingResponse.data as any)?.chartData || []);
+      try {
+        const topSpendingResponse = await analyticsAPI.getTopSpendingCategories(period, 10);
+        if (topSpendingResponse.success) {
+          setTopSpendingCategories((topSpendingResponse.data as any)?.chartData || []);
+        }
+      } catch (error) {
+        console.error('Failed to load top spending categories:', error);
+        setTopSpendingCategories([]);
       }
 
-      if (balanceResponse.success) {
-        setCumulativeBalance((balanceResponse.data as any)?.chartData || []);
+      try {
+        const balanceResponse = await analyticsAPI.getCumulativeBalance(period);
+        if (balanceResponse.success) {
+          setCumulativeBalance((balanceResponse.data as any)?.chartData || []);
+        }
+      } catch (error) {
+        console.error('Failed to load cumulative balance:', error);
+        setCumulativeBalance([]);
       }
 
     } catch (error) {
       console.error('Failed to load reports data:', error);
-      toast.error('Failed to load reports data');
+      toast.error('Some reports data could not be loaded');
     } finally {
       setIsLoading(false);
     }
@@ -431,9 +442,9 @@ const ReportsPage = ({ onNavigateBack, onLogout }: ReportsPageProps) => {
                         {new Date(item.date || '').toLocaleDateString()}
                       </div>
                       <div className={`text-sm font-medium ${
-                        item.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                        (item.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {formatCurrency(item.balance)}
+                        {formatCurrency(item.balance || 0)}
                       </div>
                     </div>
                   ))}
