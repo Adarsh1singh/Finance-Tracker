@@ -65,6 +65,10 @@ function App() {
     setCurrentPage('dashboard');
   };
 
+  const handleNavigate = (page: string) => {
+    setCurrentPage(page as 'dashboard' | 'transactions' | 'budgets' | 'reports');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -83,6 +87,8 @@ function App() {
         return (
           <TransactionsPage
             onNavigateBack={handleNavigateBack}
+            onLogout={handleLogout}
+            onNavigate={handleNavigate}
           />
         );
       case 'budgets':
@@ -90,6 +96,7 @@ function App() {
           <BudgetPage
             onNavigateBack={handleNavigateBack}
             onLogout={handleLogout}
+            onNavigate={handleNavigate}
           />
         );
       case 'reports':
@@ -97,6 +104,7 @@ function App() {
           <ReportsPage
             onNavigateBack={handleNavigateBack}
             onLogout={handleLogout}
+            onNavigate={handleNavigate}
           />
         );
       case 'dashboard':
@@ -107,6 +115,7 @@ function App() {
             onNavigateToTransactions={handleNavigateToTransactions}
             onNavigateToBudgets={handleNavigateToBudgets}
             onNavigateToReports={handleNavigateToReports}
+            onNavigate={handleNavigate}
           />
         );
     }

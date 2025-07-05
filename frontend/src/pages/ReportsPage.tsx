@@ -29,9 +29,10 @@ interface ChartData {
 interface ReportsPageProps {
   onNavigateBack: () => void;
   onLogout: () => void;
+  onNavigate: (page: string) => void;
 }
 
-const ReportsPage = ({ onNavigateBack, onLogout }: ReportsPageProps) => {
+const ReportsPage = ({ onLogout, onNavigate }: ReportsPageProps) => {
   const [expensesByCategory, setExpensesByCategory] = useState<ChartData[]>([]);
   const [monthlyTrends, setMonthlyTrends] = useState<ChartData[]>([]);
   const [topSpendingCategories, setTopSpendingCategories] = useState<ChartData[]>([]);
@@ -133,11 +134,10 @@ const ReportsPage = ({ onNavigateBack, onLogout }: ReportsPageProps) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Header 
+      <Header
         pageName="Reports & Analytics"
-        showBackButton={true}
-        onBackClick={onNavigateBack}
         onLogout={onLogout}
+        onNavigate={onNavigate}
       />
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

@@ -7,7 +7,6 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
-  ArrowLeft,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
@@ -17,6 +16,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import Modal from '@/components/ui/Modal';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import AppLayout from '@/components/layout/AppLayout';
 import toast from 'react-hot-toast';
 
 interface Transaction {
@@ -49,9 +49,11 @@ interface PaginationInfo {
 
 interface TransactionsPageProps {
   onNavigateBack: () => void;
+  onLogout: () => void;
+  onNavigate: (page: string) => void;
 }
 
-const TransactionsPage = ({ onNavigateBack}: TransactionsPageProps) => {
+const TransactionsPage = ({ onLogout, onNavigate }: TransactionsPageProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -315,49 +317,32 @@ const TransactionsPage = ({ onNavigateBack}: TransactionsPageProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onNavigateBack}
-                className="mr-4"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Transaction Management
-              </h1>
-            </div>
-            
-            <Button
-              onClick={() => {
-                setShowAddForm(true);
-                setEditingTransaction(null);
-                setFormData({
-                  name: '',
-                  amount: '',
-                  description: '',
-                  category: '',
-                  type: 'EXPENSE',
-                  date: new Date().toISOString().split('T')[0]
-                });
-              }}
-              className="flex items-center space-x-2"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add Transaction</span>
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+    <>
+      <AppLayout
+      pageName="Transactions"
+      onLogout={onLogout}
+      onNavigate={onNavigate}
+      rightContent={
+        <Button
+          onClick={() => {
+            setShowAddForm(true);
+            setEditingTransaction(null);
+            setFormData({
+              name: '',
+              amount: '',
+              description: '',
+              category: '',
+              type: 'EXPENSE',
+              date: new Date().toISOString().split('T')[0]
+            });
+          }}
+          className="flex items-center space-x-2"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Add Transaction</span>
+        </Button>
+      }
+    >
 
 
           {/* Filters */}
@@ -789,10 +774,9 @@ const TransactionsPage = ({ onNavigateBack}: TransactionsPageProps) => {
               )}
             </div>
           </div>
-        </div>
-      </main>
+    </AppLayout>
 
-      {/* New Category Modal */}
+    {/* New Category Modal */}
       <Modal
         isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
@@ -872,7 +856,7 @@ const TransactionsPage = ({ onNavigateBack}: TransactionsPageProps) => {
           </div>
         </form>
       </Modal>
-    </div>
+    </>
   );
 };
 

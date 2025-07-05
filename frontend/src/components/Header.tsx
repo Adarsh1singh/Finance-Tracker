@@ -1,14 +1,13 @@
-import { ArrowLeft, LogOut, User } from 'lucide-react';
+import { Wallet, LogOut, User, Home, CreditCard, Target, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { authService } from '@/services/authService';
 import { useState, useEffect } from 'react';
 
 interface HeaderProps {
   pageName: string;
-  showBackButton?: boolean;
-  onBackClick?: () => void;
   onLogout: () => void;
   rightContent?: React.ReactNode;
+  onNavigate?: (page: string) => void;
 }
 
 interface UserType {
@@ -17,12 +16,11 @@ interface UserType {
   email: string;
 }
 
-const Header = ({ 
-  pageName, 
-  showBackButton = false, 
-  onBackClick, 
+const Header = ({
+  pageName,
   onLogout,
-  rightContent 
+  rightContent,
+  onNavigate
 }: HeaderProps) => {
   const [user, setUser] = useState<UserType | null>(null);
 
@@ -51,27 +49,64 @@ const Header = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center">
-            {showBackButton && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onBackClick}
-                className="mr-4 flex items-center"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-            )}
+            <Wallet className="h-8 w-8 text-blue-600 mr-3" />
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                {pageName}
+              <h1 className="text-2xl font-bold text-gray-900">
+                Expense Tracker
               </h1>
+              {pageName !== 'Dashboard' && (
+                <p className="text-sm text-gray-500 mt-1">
+                  {pageName}
+                </p>
+              )}
             </div>
+
+            {/* Navigation Menu */}
+            {onNavigate && (
+              <nav className="ml-8 flex space-x-4">
+                <Button
+                  variant={pageName === 'Dashboard' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onNavigate('dashboard')}
+                  className="flex items-center space-x-2"
+                >
+                  <Home className="h-4 w-4" />
+                  <span>Dashboard</span>
+                </Button>
+                <Button
+                  variant={pageName === 'Transactions' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onNavigate('transactions')}
+                  className="flex items-center space-x-2"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  <span>Transactions</span>
+                </Button>
+                <Button
+                  variant={pageName === 'Budget Management' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onNavigate('budgets')}
+                  className="flex items-center space-x-2"
+                >
+                  <Target className="h-4 w-4" />
+                  <span>Budgets</span>
+                </Button>
+                <Button
+                  variant={pageName === 'Reports & Analytics' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onNavigate('reports')}
+                  className="flex items-center space-x-2"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Reports</span>
+                </Button>
+              </nav>
+            )}
           </div>
-          
+
           <div className="flex items-center space-x-4">
             {rightContent}
-            
+
             {/* User Info */}
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
@@ -87,7 +122,7 @@ const Header = ({
                   </div>
                 </div>
               </div>
-              
+
               <Button
                 variant="ghost"
                 size="sm"

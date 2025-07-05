@@ -3,13 +3,11 @@ import {
   Plus,
   Target,
   AlertTriangle,
-  TrendingUp,
-  TrendingDown,
   Edit,
   Trash2,
   DollarSign
 } from 'lucide-react';
-import { budgetAPI, categoryAPI, analyticsAPI } from '@/services/api';
+import { budgetAPI, categoryAPI} from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
@@ -39,9 +37,10 @@ interface Category {
 interface BudgetPageProps {
   onNavigateBack: () => void;
   onLogout: () => void;
+  onNavigate: (page: string) => void;
 }
 
-const BudgetPage = ({ onNavigateBack, onLogout }: BudgetPageProps) => {
+const BudgetPage = ({ onLogout, onNavigate }: BudgetPageProps) => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -171,11 +170,10 @@ const BudgetPage = ({ onNavigateBack, onLogout }: BudgetPageProps) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <Header 
+      <Header
         pageName="Budget Management"
-        showBackButton={true}
-        onBackClick={onNavigateBack}
         onLogout={onLogout}
+        onNavigate={onNavigate}
       />
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
