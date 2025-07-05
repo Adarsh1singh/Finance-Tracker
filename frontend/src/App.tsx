@@ -83,7 +83,6 @@ function App() {
         return (
           <TransactionsPage
             onNavigateBack={handleNavigateBack}
-            onLogout={handleLogout}
           />
         );
       case 'budgets':

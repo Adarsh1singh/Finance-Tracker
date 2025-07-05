@@ -145,14 +145,14 @@ const ReportsPage = ({ onNavigateBack, onLogout }: ReportsPageProps) => {
           {/* Controls */}
           <div className="bg-white p-4 rounded-lg shadow mb-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-              <div className="flex items-center space-x-4">
-                <div>
-                  <Label htmlFor="period">Time Period</Label>
+              <div className="flex items-center space-x-6">
+                <div className="flex flex-col">
+                  <Label htmlFor="period" className="mb-2 ml-1">Time Period</Label>
                   <select
                     id="period"
                     value={period}
                     onChange={(e) => setPeriod(e.target.value)}
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="border border-gray-300 rounded-md px-3 py-2 text-sm min-w-[140px] cursor-pointer"
                   >
                     <option value="week">This Week</option>
                     <option value="month">This Month</option>
@@ -160,14 +160,14 @@ const ReportsPage = ({ onNavigateBack, onLogout }: ReportsPageProps) => {
                     <option value="year">This Year</option>
                   </select>
                 </div>
-                
-                <div>
-                  <Label htmlFor="chart-type">View</Label>
+
+                <div className="flex flex-col">
+                  <Label htmlFor="chart-type" className="mb-2 ml-1">View</Label>
                   <select
                     id="chart-type"
                     value={selectedChart}
                     onChange={(e) => setSelectedChart(e.target.value)}
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="border border-gray-300 rounded-md px-3 py-2 text-sm min-w-[120px] cursor-pointer"
                   >
                     <option value="overview">Overview</option>
                     <option value="categories">Categories</option>
@@ -321,28 +321,61 @@ const ReportsPage = ({ onNavigateBack, onLogout }: ReportsPageProps) => {
                     </h3>
                     <BarChart3 className="h-5 w-5 text-gray-400" />
                   </div>
-                  <div className="space-y-3">
-                    {monthlyTrends.slice(0, 6).map((trend, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <span className="text-sm text-gray-600 w-20">
-                            {trend.monthName}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <div className="text-sm">
-                            <span className="text-green-600">+{formatCurrency(trend.income || 0)}</span>
-                            <span className="text-gray-400 mx-2">|</span>
-                            <span className="text-red-600">-{formatCurrency(trend.expenses || 0)}</span>
+                  <div className="space-y-4">
+                    {monthlyTrends.slice(0, 6).map((trend, index) => {
+                      const maxAmount = Math.max(
+                        ...monthlyTrends.map(t => Math.max(t.income || 0, t.expenses || 0))
+                      );
+                      const incomeWidth = maxAmount > 0 ? ((trend.income || 0) / maxAmount) * 100 : 0;
+                      const expenseWidth = maxAmount > 0 ? ((trend.expenses || 0) / maxAmount) * 100 : 0;
+
+                      return (
+                        <div key={index} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-700">
+                              {trend.monthName}
+                            </span>
+                            <div className={`text-sm font-medium ${
+                              (trend.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              Net: {formatCurrency(trend.balance || 0)}
+                            </div>
                           </div>
-                          <div className={`text-sm font-medium ${
-                            (trend.balance || 0) >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {formatCurrency(trend.balance || 0)}
+
+                          {/* Income Bar */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-green-600">Income</span>
+                              <span className="text-green-600 font-medium">
+                                {formatCurrency(trend.income || 0)}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${incomeWidth}%` }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* Expense Bar */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-red-600">Expenses</span>
+                              <span className="text-red-600 font-medium">
+                                {formatCurrency(trend.expenses || 0)}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-red-500 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${expenseWidth}%` }}
+                              ></div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>

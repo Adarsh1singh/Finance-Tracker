@@ -51,7 +51,7 @@ interface TransactionsPageProps {
   onNavigateBack: () => void;
 }
 
-const TransactionsPage = ({ onNavigateBack }: TransactionsPageProps) => {
+const TransactionsPage = ({ onNavigateBack}: TransactionsPageProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);

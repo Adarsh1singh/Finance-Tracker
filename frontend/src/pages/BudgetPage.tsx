@@ -353,7 +353,7 @@ const BudgetPage = ({ onNavigateBack, onLogout }: BudgetPageProps) => {
                   id="category"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 cursor-pointer"
                   required
                 >
                   <option value="">Select a category</option>
@@ -362,7 +362,7 @@ const BudgetPage = ({ onNavigateBack, onLogout }: BudgetPageProps) => {
                       {category.icon} {category.name}
                     </option>
                   ))}
-                </select>
+                </select> 
               </div>
               
               <div>
