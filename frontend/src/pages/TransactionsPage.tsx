@@ -316,24 +316,30 @@ const TransactionsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-blue-600 mx-auto"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-transparent border-r-indigo-600 animate-pulse mx-auto"></div>
+          </div>
+          <p className="mt-4 text-slate-600 font-medium">Loading transactions...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="h-full bg-gray-50">
+      <div className="h-full bg-gradient-to-br from-slate-50 to-blue-50">
         {/* Page Header */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
+            <div className="flex justify-between items-center py-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                   Transactions
                 </h1>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-slate-600 mt-2 font-medium">
                   Manage your income and expenses
                 </p>
               </div>
@@ -350,10 +356,10 @@ const TransactionsPage = () => {
                     date: new Date().toISOString().split("T")[0],
                   });
                 }}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Plus className="h-4 w-4" />
-                <span>Add Transaction</span>
+                <span className="font-medium">Add Transaction</span>
               </Button>
             </div>
           </div>
@@ -387,7 +393,7 @@ const TransactionsPage = () => {
                     onChange={(e) =>
                       handleTypeFilterChange(e.target.value as any)
                     }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   >
                     <option value="ALL">All Types</option>
                     <option value="INCOME">Income</option>
@@ -401,7 +407,7 @@ const TransactionsPage = () => {
                     id="category-filter"
                     value={filterCategory}
                     onChange={(e) => handleCategoryFilterChange(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   >
                     <option value="">All Categories</option>
                     {categories.map((category) => (
@@ -420,7 +426,7 @@ const TransactionsPage = () => {
                     onChange={(e) =>
                       handleItemsPerPageChange(Number(e.target.value))
                     }
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                   >
                     <option value={5}>5 per page</option>
                     <option value={10}>10 per page</option>
@@ -443,12 +449,24 @@ const TransactionsPage = () => {
 
             {/* Add/Edit Form */}
             {showAddForm && (
-              <div className="bg-white p-6 rounded-lg shadow mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  {editingTransaction
-                    ? "Edit Transaction"
-                    : "Add New Transaction"}
-                </h3>
+              <div className="bg-white shadow-xl rounded-2xl border border-slate-200 overflow-hidden mb-8">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                  <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      {editingTransaction ? (
+                        <Edit className="h-5 w-5 text-white" />
+                      ) : (
+                        <Plus className="h-5 w-5 text-white" />
+                      )}
+                    </div>
+                    <span>
+                      {editingTransaction
+                        ? "Edit Transaction"
+                        : "Add New Transaction"}
+                    </span>
+                  </h3>
+                </div>
+                <div className="px-6 py-6 sm:p-8">
 
                 <form
                   onSubmit={handleSubmit}
@@ -494,7 +512,7 @@ const TransactionsPage = () => {
                           category: "",
                         })
                       }
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                       required
                     >
                       <option value="EXPENSE">Expense</option>
@@ -511,7 +529,7 @@ const TransactionsPage = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, category: e.target.value })
                         }
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                         required
                       >
                         <option value="">Select a category</option>
@@ -581,16 +599,22 @@ const TransactionsPage = () => {
                     </Button>
                   </div>
                 </form>
+                </div>
               </div>
             )}
 
             {/* Transactions Table */}
-            <div className="bg-white shadow rounded-lg overflow-hidden">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Transactions ({pagination.total})
-                  </h3>
+            <div className="bg-white shadow-xl rounded-2xl border border-slate-200 overflow-hidden">
+              <div className="px-6 py-6 sm:p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900">
+                      Transactions
+                    </h3>
+                    <p className="text-slate-600 mt-1">
+                      {pagination.total} total transactions
+                    </p>
+                  </div>
                   {pagination.pages > 1 && (
                     <div className="text-sm text-gray-500">
                       Page {pagination.page} of {pagination.pages}
@@ -611,29 +635,29 @@ const TransactionsPage = () => {
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-gradient-to-r from-slate-50 to-blue-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                             Transaction
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                             Type
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                             Category
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                             Amount
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                             Date
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-white divide-y divide-slate-200">
                         {transactions.map((transaction: Transaction) => {
                           // Find the category details to get icon
                           const categoryDetails = categories.find(
@@ -643,7 +667,7 @@ const TransactionsPage = () => {
                           return (
                             <tr
                               key={transaction.id}
-                              className="hover:bg-gray-50"
+                              className="hover:bg-slate-50 transition-colors duration-200"
                             >
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
@@ -947,10 +971,10 @@ const TransactionsPage = () => {
                     onClick={() =>
                       setNewCategoryForm({ ...newCategoryForm, icon })
                     }
-                    className={`p-2 text-xl border rounded hover:bg-gray-50 ${
+                    className={`p-3 text-xl border-2 rounded-xl hover:bg-slate-50 transition-all duration-200 ${
                       newCategoryForm.icon === icon
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300"
+                        ? "border-blue-500 bg-blue-50 shadow-md"
+                        : "border-slate-300"
                     }`}
                   >
                     {icon}
@@ -986,10 +1010,10 @@ const TransactionsPage = () => {
                     onClick={() =>
                       setNewCategoryForm({ ...newCategoryForm, color })
                     }
-                    className={`w-8 h-8 rounded border-2 ${
+                    className={`w-8 h-8 rounded-lg border-2 hover:scale-110 transition-all duration-200 ${
                       newCategoryForm.color === color
-                        ? "border-gray-800"
-                        : "border-gray-300"
+                        ? "border-slate-800 shadow-lg"
+                        : "border-slate-300"
                     }`}
                     style={{ backgroundColor: color }}
                   />

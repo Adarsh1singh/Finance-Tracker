@@ -154,21 +154,29 @@ const BudgetPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-purple-600 mx-auto"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-transparent border-r-indigo-600 animate-pulse mx-auto"></div>
+          </div>
+          <p className="mt-4 text-slate-600 font-medium">Loading budgets...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full bg-gray-50">
+    <div className="h-full bg-gradient-to-br from-slate-50 to-purple-50">
       {/* Page Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Budget Management</h1>
-              <p className="text-sm text-gray-600 mt-1">Set and track your spending limits</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-purple-700 bg-clip-text text-transparent">
+                Budget Management
+              </h1>
+              <p className="text-slate-600 mt-2 font-medium">Set and track your spending limits</p>
             </div>
           </div>
         </div>
@@ -281,19 +289,32 @@ const BudgetPage = () => {
                   {budgets.map((budget) => {
                     const categoryDetails = categories.find(cat => cat.name === budget.category);
                     return (
-                      <div key={budget.id} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center">
-                            <span className="text-lg mr-2">{categoryDetails?.icon || '📦'}</span>
-                            <span className="font-medium text-gray-900">{budget.category}</span>
+                      <div key={budget.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center space-x-3">
+                            <div className={`p-2 rounded-xl shadow-lg ${
+                              budget.percentage > 100
+                                ? 'bg-gradient-to-br from-red-500 to-rose-500'
+                                : budget.percentage > 80
+                                ? 'bg-gradient-to-br from-yellow-500 to-orange-500'
+                                : 'bg-gradient-to-br from-green-500 to-emerald-500'
+                            }`}>
+                              <span className="text-white text-sm">{categoryDetails?.icon || '📦'}</span>
+                            </div>
+                            <div>
+                              <span className="font-bold text-slate-900 text-lg">{budget.category}</span>
+                              <p className="text-slate-500 text-sm capitalize">{budget.period}</p>
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-3">
                             {budget.percentage > 90 && (
-                              <AlertTriangle className="h-4 w-4 text-red-500" />
+                              <div className="p-2 bg-red-100 rounded-lg">
+                                <AlertTriangle className="h-4 w-4 text-red-600" />
+                              </div>
                             )}
-                            <span className={`text-sm font-medium ${
-                              budget.percentage > 100 ? 'text-red-600' : 
-                              budget.percentage > 80 ? 'text-yellow-600' : 'text-green-600'
+                            <span className={`text-lg font-bold px-3 py-1 rounded-lg ${
+                              budget.percentage > 100 ? 'text-red-700 bg-red-100' :
+                              budget.percentage > 80 ? 'text-yellow-700 bg-yellow-100' : 'text-green-700 bg-green-100'
                             }`}>
                               {budget.percentage.toFixed(1)}%
                             </span>
@@ -301,6 +322,7 @@ const BudgetPage = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEdit(budget)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -308,7 +330,7 @@ const BudgetPage = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(budget.id)}
-                              className="text-red-600 hover:text-red-900"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -350,7 +372,7 @@ const BudgetPage = () => {
                   id="category"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 cursor-pointer"
+                  className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 cursor-pointer"
                   required
                 >
                   <option value="">Select a category</option>
@@ -381,7 +403,7 @@ const BudgetPage = () => {
                   id="period"
                   value={formData.period}
                   onChange={(e) => setFormData({ ...formData, period: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                 >
                   <option value="monthly">Monthly</option>
                   <option value="weekly">Weekly</option>

@@ -114,8 +114,14 @@ const ReportsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-emerald-600 mx-auto"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-transparent border-r-green-600 animate-pulse mx-auto"></div>
+          </div>
+          <p className="mt-4 text-slate-600 font-medium">Loading reports...</p>
+        </div>
       </div>
     );
   }
@@ -125,14 +131,16 @@ const ReportsPage = () => {
   const totalBalance = totalIncome - totalExpenses;
 
   return (
-    <div className="h-full bg-gray-50">
+    <div className="h-full bg-gradient-to-br from-slate-50 to-emerald-50">
       {/* Page Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
-              <p className="text-sm text-gray-600 mt-1">Analyze your financial data and trends</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-emerald-700 bg-clip-text text-transparent">
+                Reports & Analytics
+              </h1>
+              <p className="text-slate-600 mt-2 font-medium">Analyze your financial data and trends</p>
             </div>
           </div>
         </div>
@@ -142,16 +150,16 @@ const ReportsPage = () => {
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {/* Controls */}
-          <div className="bg-white p-4 rounded-lg shadow mb-6">
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-slate-200 mb-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
               <div className="flex items-center space-x-6">
                 <div className="flex flex-col">
-                  <Label htmlFor="period" className="mb-2 ml-1">Time Period</Label>
+                  <Label htmlFor="period" className="mb-2 ml-1 font-semibold text-slate-700">Time Period</Label>
                   <select
                     id="period"
                     value={period}
                     onChange={(e) => setPeriod(e.target.value)}
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm min-w-[140px] cursor-pointer"
+                    className="border border-slate-300 rounded-xl px-4 py-2 text-sm min-w-[140px] cursor-pointer bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
                   >
                     <option value="week">This Week</option>
                     <option value="month">This Month</option>
@@ -161,12 +169,12 @@ const ReportsPage = () => {
                 </div>
 
                 <div className="flex flex-col">
-                  <Label htmlFor="chart-type" className="mb-2 ml-1">View</Label>
+                  <Label htmlFor="chart-type" className="mb-2 ml-1 font-semibold text-slate-700">View</Label>
                   <select
                     id="chart-type"
                     value={selectedChart}
                     onChange={(e) => setSelectedChart(e.target.value)}
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm min-w-[120px] cursor-pointer"
+                    className="border border-slate-300 rounded-xl px-4 py-2 text-sm min-w-[120px] cursor-pointer bg-white shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
                   >
                     <option value="overview">Overview</option>
                     <option value="categories">Categories</option>
@@ -188,19 +196,21 @@ const ReportsPage = () => {
           </div>
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white overflow-hidden shadow-xl rounded-2xl border border-slate-200 hover:shadow-2xl transition-all duration-300 group">
+              <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <TrendingUp className="h-8 w-8 text-green-600" />
+                    <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <TrendingUp className="h-6 w-6 text-white" />
+                    </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
                         Total Income
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                      <dd className="text-2xl font-bold text-slate-900 mt-1">
                         {formatCurrency(totalIncome)}
                       </dd>
                     </dl>
@@ -209,18 +219,20 @@ const ReportsPage = () => {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+            <div className="bg-white overflow-hidden shadow-xl rounded-2xl border border-slate-200 hover:shadow-2xl transition-all duration-300 group">
+              <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <TrendingDown className="h-8 w-8 text-red-600" />
+                    <div className="p-3 bg-gradient-to-br from-red-500 to-rose-500 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <TrendingDown className="h-6 w-6 text-white" />
+                    </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
                         Total Expenses
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                      <dd className="text-2xl font-bold text-slate-900 mt-1">
                         {formatCurrency(totalExpenses)}
                       </dd>
                     </dl>
@@ -229,18 +241,24 @@ const ReportsPage = () => {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+            <div className="bg-white overflow-hidden shadow-xl rounded-2xl border border-slate-200 hover:shadow-2xl transition-all duration-300 group">
+              <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <BarChart3 className={`h-8 w-8 ${totalBalance >= 0 ? 'text-blue-600' : 'text-red-600'}`} />
+                    <div className={`p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 ${
+                      totalBalance >= 0
+                        ? 'bg-gradient-to-br from-blue-500 to-indigo-500'
+                        : 'bg-gradient-to-br from-orange-500 to-red-500'
+                    }`}>
+                      <BarChart3 className="h-6 w-6 text-white" />
+                    </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
                         Net Balance
                       </dt>
-                      <dd className={`text-lg font-medium ${totalBalance >= 0 ? 'text-gray-900' : 'text-red-600'}`}>
+                      <dd className={`text-2xl font-bold mt-1 ${totalBalance >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
                         {formatCurrency(totalBalance)}
                       </dd>
                     </dl>
@@ -249,18 +267,20 @@ const ReportsPage = () => {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+            <div className="bg-white overflow-hidden shadow-xl rounded-2xl border border-slate-200 hover:shadow-2xl transition-all duration-300 group">
+              <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <PieChart className="h-8 w-8 text-purple-600" />
+                    <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <PieChart className="h-6 w-6 text-white" />
+                    </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
                         Categories
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                      <dd className="text-2xl font-bold text-slate-900 mt-1">
                         {expensesByCategory.length}
                       </dd>
                     </dl>
@@ -272,7 +292,7 @@ const ReportsPage = () => {
 
           {/* Charts Section */}
           {selectedChart === 'overview' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Expenses by Category */}
               <div className="bg-white overflow-hidden shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6">

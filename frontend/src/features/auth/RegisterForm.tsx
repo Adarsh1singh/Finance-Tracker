@@ -50,12 +50,12 @@ const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) => {
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-8">
         <div className="flex justify-center mb-4">
-          <div className="p-3 bg-green-100 rounded-full">
-            <UserPlus className="h-8 w-8 text-green-600" />
+          <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg">
+            <UserPlus className="h-8 w-8 text-white" />
           </div>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900">Create account</h2>
-        <p className="text-gray-600 mt-2">Start tracking your expenses today</p>
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Create account</h2>
+        <p className="text-slate-600 mt-2 font-medium">Start tracking your expenses today</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

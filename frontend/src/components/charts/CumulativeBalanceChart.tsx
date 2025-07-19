@@ -96,9 +96,14 @@ const CumulativeBalanceChart = ({ data, title = "Cumulative Balance Over Time" }
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
-      <div className="h-80">
+    <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 hover:shadow-2xl transition-all duration-300">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-bold text-slate-900">{title}</h3>
+        <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl">
+          <div className="w-6 h-6 text-white">💰</div>
+        </div>
+      </div>
+      <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
             <defs>

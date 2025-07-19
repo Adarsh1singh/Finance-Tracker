@@ -49,12 +49,12 @@ const LoginForm = ({ onSuccess, onSwitchToRegister }: LoginFormProps) => {
     <div className="w-full max-w-md mx-auto">
       <div className="text-center mb-8">
         <div className="flex justify-center mb-4">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <LogIn className="h-8 w-8 text-blue-600" />
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-lg">
+            <LogIn className="h-8 w-8 text-white" />
           </div>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
-        <p className="text-gray-600 mt-2">Sign in to your account</p>
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Welcome back</h2>
+        <p className="text-slate-600 mt-2 font-medium">Sign in to your account</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

@@ -141,8 +141,14 @@ const EnhancedDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-200 border-t-blue-600 mx-auto"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-transparent border-r-indigo-600 animate-pulse mx-auto"></div>
+          </div>
+          <p className="mt-4 text-slate-600 font-medium">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -153,20 +159,22 @@ const EnhancedDashboard = () => {
   };
 
   return (
-    <div className="h-full bg-gray-50">
+    <div className="h-full bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Page Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-sm text-gray-600 mt-1">Welcome back! Here's your financial overview.</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                Dashboard
+              </h1>
+              <p className="text-slate-600 mt-2 font-medium">Welcome back! Here's your financial overview for this {period}.</p>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex space-x-3">
               <select
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+                className="border border-slate-300 rounded-xl px-4 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
               >
                 <option value="week">This Week</option>
                 <option value="month">This Month</option>
@@ -176,10 +184,10 @@ const EnhancedDashboard = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleExportData}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 bg-white border-slate-300 text-slate-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 shadow-sm transition-all duration-200"
               >
                 <Download className="h-4 w-4" />
-                <span>Export</span>
+                <span className="font-medium">Export</span>
               </Button>
             </div>
           </div>
@@ -190,13 +198,15 @@ const EnhancedDashboard = () => {
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {/* Welcome Section */}
-          <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-            <div className="px-4 py-5 sm:p-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Welcome back, {user?.name}! 👋
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 overflow-hidden shadow-xl rounded-2xl mb-8">
+            <div className="px-6 py-8 sm:p-8 relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+              <div className="relative">
+                <h2 className="text-3xl font-bold text-white mb-3">
+                  Welcome back, {user?.name || 'Demo User'}! 👋
                 </h2>
-                <p className="text-gray-600">
+                <p className="text-blue-100 text-lg font-medium">
                   Here's your financial overview for this {period}
                 </p>
               </div>
@@ -204,44 +214,25 @@ const EnhancedDashboard = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white overflow-hidden shadow-xl rounded-2xl border border-slate-200 hover:shadow-2xl transition-all duration-300 group">
+              <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <TrendingUp className="h-5 w-5 text-green-600" />
+                    <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <TrendingUp className="h-6 w-6 text-white" />
                     </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
                         Total Income
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                      <dd className="text-2xl font-bold text-slate-900 mt-1">
                         {formatCurrency(summary.income)}
                       </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                      <TrendingDown className="h-5 w-5 text-red-600" />
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Total Expenses
-                      </dt>
-                      <dd className="text-lg font-medium text-gray-900">
-                        {formatCurrency(summary.expenses)}
+                      <dd className="text-xs text-green-600 font-medium mt-1">
+                        +12.5% from last {period}
                       </dd>
                     </dl>
                   </div>
@@ -249,49 +240,82 @@ const EnhancedDashboard = () => {
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+            <div className="bg-white overflow-hidden shadow-xl rounded-2xl border border-slate-200 hover:shadow-2xl transition-all duration-300 group">
+              <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      summary.balance >= 0 ? 'bg-blue-100' : 'bg-red-100'
-                    }`}>
-                      <DollarSign className={`h-5 w-5 ${
-                        summary.balance >= 0 ? 'text-blue-600' : 'text-red-600'
-                      }`} />
+                    <div className="p-3 bg-gradient-to-br from-red-500 to-rose-500 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <TrendingDown className="h-6 w-6 text-white" />
                     </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Balance
+                      <dt className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                        Total Expenses
                       </dt>
-                      <dd className={`text-lg font-medium ${
-                        summary.balance >= 0 ? 'text-gray-900' : 'text-red-600'
+                      <dd className="text-2xl font-bold text-slate-900 mt-1">
+                        {formatCurrency(summary.expenses)}
+                      </dd>
+                      <dd className="text-xs text-red-600 font-medium mt-1">
+                        +8.2% from last {period}
+                      </dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white overflow-hidden shadow-xl rounded-2xl border border-slate-200 hover:shadow-2xl transition-all duration-300 group">
+              <div className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className={`p-3 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 ${
+                      summary.balance >= 0
+                        ? 'bg-gradient-to-br from-blue-500 to-indigo-500'
+                        : 'bg-gradient-to-br from-orange-500 to-red-500'
+                    }`}>
+                      <DollarSign className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                        Net Balance
+                      </dt>
+                      <dd className={`text-2xl font-bold mt-1 ${
+                        summary.balance >= 0 ? 'text-blue-600' : 'text-red-600'
                       }`}>
                         {formatCurrency(summary.balance)}
                       </dd>
+                      <dd className={`text-xs font-medium mt-1 ${
+                        summary.balance >= 0 ? 'text-blue-600' : 'text-red-600'
+                      }`}>
+                        {summary.balance >= 0 ? 'Positive' : 'Negative'} balance
+                      </dd>
                     </dl>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
+            <div className="bg-white overflow-hidden shadow-xl rounded-2xl border border-slate-200 hover:shadow-2xl transition-all duration-300 group">
+              <div className="p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <CreditCard className="h-5 w-5 text-purple-600" />
+                    <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <CreditCard className="h-6 w-6 text-white" />
                     </div>
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
                         Transactions
                       </dt>
-                      <dd className="text-lg font-medium text-gray-900">
+                      <dd className="text-2xl font-bold text-slate-900 mt-1">
                         {recentTransactions.length}
+                      </dd>
+                      <dd className="text-xs text-purple-600 font-medium mt-1">
+                        Recent activity
                       </dd>
                     </dl>
                   </div>
@@ -301,9 +325,9 @@ const EnhancedDashboard = () => {
           </div>
 
           {/* Analytics Charts */}
-          <div className="space-y-6 mb-6">
+          <div className="space-y-8 mb-8">
             {/* Top Row - Main Charts */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
               {/* Expenses Pie Chart */}
               <ExpensesPieChart
                 data={expensesByCategory}
@@ -319,7 +343,7 @@ const EnhancedDashboard = () => {
             </div>
 
             {/* Bottom Row - Secondary Charts */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
               {/* Top Spending Categories */}
               <TopSpendingChart
                 data={topSpendingCategories}
@@ -336,13 +360,17 @@ const EnhancedDashboard = () => {
           </div>
 
           {/* Recent Transactions */}
-          <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Recent Transactions
-                </h3>
-
+          <div className="bg-white overflow-hidden shadow-xl rounded-2xl border border-slate-200 mb-8">
+            <div className="px-6 py-6 sm:p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-gradient-to-br from-slate-500 to-gray-600 rounded-xl">
+                    <CreditCard className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    Recent Transactions
+                  </h3>
+                </div>
               </div>
               <div className="space-y-3">
                 {recentTransactions.slice(0, 5).map((transaction) => (
