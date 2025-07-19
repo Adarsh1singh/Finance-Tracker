@@ -8,6 +8,9 @@ import TransactionsPage from './pages/TransactionsPage';
 import BudgetPage from './pages/BudgetPage';
 import ReportsPage from './pages/ReportsPage';
 
+// Layout
+import SidebarLayout from './components/layout/SidebarLayout';
+
 // Services
 import { authService } from './services/authService';
 
@@ -49,21 +52,7 @@ function App() {
     setCurrentPage('dashboard');
   };
 
-  const handleNavigateToTransactions = () => {
-    setCurrentPage('transactions');
-  };
 
-  const handleNavigateToBudgets = () => {
-    setCurrentPage('budgets');
-  };
-
-  const handleNavigateToReports = () => {
-    setCurrentPage('reports');
-  };
-
-  const handleNavigateBack = () => {
-    setCurrentPage('dashboard');
-  };
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page as 'dashboard' | 'transactions' | 'budgets' | 'reports');
@@ -82,43 +71,27 @@ function App() {
       return <AuthPage onAuthSuccess={handleAuthSuccess} />;
     }
 
-    switch (currentPage) {
-      case 'transactions':
-        return (
-          <TransactionsPage
-            onNavigateBack={handleNavigateBack}
-            onLogout={handleLogout}
-            onNavigate={handleNavigate}
-          />
-        );
-      case 'budgets':
-        return (
-          <BudgetPage
-            onNavigateBack={handleNavigateBack}
-            onLogout={handleLogout}
-            onNavigate={handleNavigate}
-          />
-        );
-      case 'reports':
-        return (
-          <ReportsPage
-            onNavigateBack={handleNavigateBack}
-            onLogout={handleLogout}
-            onNavigate={handleNavigate}
-          />
-        );
-      case 'dashboard':
-      default:
-        return (
-          <EnhancedDashboard
-            onLogout={handleLogout}
-            onNavigateToTransactions={handleNavigateToTransactions}
-            onNavigateToBudgets={handleNavigateToBudgets}
-            onNavigateToReports={handleNavigateToReports}
-            onNavigate={handleNavigate}
-          />
-        );
-    }
+    return (
+      <SidebarLayout
+        currentPage={currentPage}
+        onNavigate={handleNavigate}
+        onLogout={handleLogout}
+      >
+        {(() => {
+          switch (currentPage) {
+            case 'transactions':
+              return <TransactionsPage />;
+            case 'budgets':
+              return <BudgetPage />;
+            case 'reports':
+              return <ReportsPage />;
+            case 'dashboard':
+            default:
+              return <EnhancedDashboard />;
+          }
+        })()}
+      </SidebarLayout>
+    );
   };
 
   return (

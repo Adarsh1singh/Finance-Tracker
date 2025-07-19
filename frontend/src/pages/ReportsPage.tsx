@@ -10,7 +10,6 @@ import { analyticsAPI } from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/Label';
 import { formatCurrency } from '@/lib/utils';
-import Header from '@/components/Header';
 import toast from 'react-hot-toast';
 
 interface ChartData {
@@ -26,13 +25,7 @@ interface ChartData {
   date?: string;
 }
 
-interface ReportsPageProps {
-  onNavigateBack: () => void;
-  onLogout: () => void;
-  onNavigate: (page: string) => void;
-}
-
-const ReportsPage = ({ onLogout, onNavigate }: ReportsPageProps) => {
+const ReportsPage = () => {
   const [expensesByCategory, setExpensesByCategory] = useState<ChartData[]>([]);
   const [monthlyTrends, setMonthlyTrends] = useState<ChartData[]>([]);
   const [topSpendingCategories, setTopSpendingCategories] = useState<ChartData[]>([]);
@@ -132,15 +125,21 @@ const ReportsPage = ({ onLogout, onNavigate }: ReportsPageProps) => {
   const totalBalance = totalIncome - totalExpenses;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Header
-        pageName="Reports & Analytics"
-        onLogout={onLogout}
-        onNavigate={onNavigate}
-      />
+    <div className="h-full bg-gray-50">
+      {/* Page Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+              <p className="text-sm text-gray-600 mt-1">Analyze your financial data and trends</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      {/* Page Content */}
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {/* Controls */}
           <div className="bg-white p-4 rounded-lg shadow mb-6">
@@ -486,7 +485,7 @@ const ReportsPage = ({ onLogout, onNavigate }: ReportsPageProps) => {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 };

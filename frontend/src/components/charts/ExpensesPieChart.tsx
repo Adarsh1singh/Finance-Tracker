@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface ExpenseData {
   category: string;
@@ -41,26 +41,7 @@ const ExpensesPieChart = ({ data, title = "Expenses by Category" }: ExpensesPieC
     return null;
   };
 
-  const CustomLegend = ({ payload }: any) => {
-    if (!payload || !Array.isArray(payload)) return null;
 
-    return (
-      <div className="flex flex-wrap justify-center gap-4 mt-4">
-        {payload.map((entry: any, index: number) => (
-          <div key={`legend-${index}`} className="flex items-center space-x-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span className="text-sm text-gray-600 flex items-center space-x-1">
-              <span>{entry.payload?.icon || '📊'}</span>
-              <span>{entry.value}</span>
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   if (!data || data.length === 0) {
     return (
@@ -94,16 +75,33 @@ const ExpensesPieChart = ({ data, title = "Expenses by Category" }: ExpensesPieC
               innerRadius={40}
               paddingAngle={2}
               dataKey="amount"
+              nameKey="category"
             >
               {dataWithTotal.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
-            <Legend content={<CustomLegend />} />
           </PieChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Custom Legend */}
+      <div className="flex flex-wrap justify-center gap-4 mt-4">
+        {dataWithTotal.map((entry, index) => (
+          <div key={`legend-${index}`} className="flex items-center space-x-2">
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-sm text-gray-600 flex items-center space-x-1">
+              <span>{entry.icon}</span>
+              <span>{entry.category}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+
       <div className="mt-4 text-center">
         <p className="text-sm text-gray-600">
           Total Expenses: <span className="font-semibold text-gray-900">{formatCurrency(total)}</span>

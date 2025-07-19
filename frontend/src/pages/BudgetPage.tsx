@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { formatCurrency } from '@/lib/utils';
-import Header from '@/components/Header';
 import Modal from '@/components/ui/Modal';
 import toast from 'react-hot-toast';
 
@@ -34,13 +33,7 @@ interface Category {
   icon?: string;
 }
 
-interface BudgetPageProps {
-  onNavigateBack: () => void;
-  onLogout: () => void;
-  onNavigate: (page: string) => void;
-}
-
-const BudgetPage = ({ onLogout, onNavigate }: BudgetPageProps) => {
+const BudgetPage = () => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -168,15 +161,21 @@ const BudgetPage = ({ onLogout, onNavigate }: BudgetPageProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Header
-        pageName="Budget Management"
-        onLogout={onLogout}
-        onNavigate={onNavigate}
-      />
+    <div className="h-full bg-gray-50">
+      {/* Page Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Budget Management</h1>
+              <p className="text-sm text-gray-600 mt-1">Set and track your spending limits</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      {/* Page Content */}
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {/* Page Actions */}
           <div className="flex justify-between items-center mb-6">
@@ -405,7 +404,7 @@ const BudgetPage = ({ onLogout, onNavigate }: BudgetPageProps) => {
             </form>
           </Modal>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

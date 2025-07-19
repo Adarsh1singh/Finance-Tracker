@@ -1,21 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
-  Plus,
   TrendingUp,
   TrendingDown,
   DollarSign,
   CreditCard,
-  PieChart,
-  BarChart3,
-  Download,
-  Activity,
-  Target
+  Download
 } from 'lucide-react';
 import { authService, type User as UserType } from '@/services/authService';
 import { analyticsAPI } from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import AppLayout from '@/components/layout/AppLayout';
 import {
   ExpensesPieChart,
   MonthlyTrendsChart,
@@ -62,15 +56,7 @@ interface BalanceData {
   expenses?: number;
 }
 
-interface DashboardPageProps {
-  onLogout: () => void;
-  onNavigateToTransactions: () => void;
-  onNavigateToBudgets: () => void;
-  onNavigateToReports: () => void;
-  onNavigate: (page: string) => void;
-}
-
-const EnhancedDashboard = ({ onLogout, onNavigateToTransactions, onNavigateToBudgets, onNavigateToReports, onNavigate }: DashboardPageProps) => {
+const EnhancedDashboard = () => {
   const [user, setUser] = useState<UserType | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [expensesByCategory, setExpensesByCategory] = useState<ExpenseData[]>([]);
@@ -139,11 +125,7 @@ const EnhancedDashboard = ({ onLogout, onNavigateToTransactions, onNavigateToBud
     }
   };
 
-  const handleLogout = () => {
-    authService.logout();
-    toast.success('Logged out successfully');
-    onLogout();
-  };
+
 
   const handleExportData = async () => {
     try {
@@ -171,33 +153,42 @@ const EnhancedDashboard = ({ onLogout, onNavigateToTransactions, onNavigateToBud
   };
 
   return (
-    <AppLayout
-      pageName="Dashboard"
-      onLogout={handleLogout}
-      onNavigate={onNavigate}
-      rightContent={
-        <div className="flex space-x-2">
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-          >
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="year">This Year</option>
-          </select>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportData}
-            className="flex items-center space-x-2"
-          >
-            <Download className="h-4 w-4" />
-            <span>Export</span>
-          </Button>
+    <div className="h-full bg-gray-50">
+      {/* Page Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-sm text-gray-600 mt-1">Welcome back! Here's your financial overview.</p>
+            </div>
+            <div className="flex space-x-2">
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+              >
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="year">This Year</option>
+              </select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportData}
+                className="flex items-center space-x-2"
+              >
+                <Download className="h-4 w-4" />
+                <span>Export</span>
+              </Button>
+            </div>
+          </div>
         </div>
-      }
-    >
+      </div>
+
+      {/* Page Content */}
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
           {/* Welcome Section */}
           <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
             <div className="px-4 py-5 sm:p-6">
@@ -351,15 +342,7 @@ const EnhancedDashboard = ({ onLogout, onNavigateToTransactions, onNavigateToBud
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
                   Recent Transactions
                 </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onNavigateToTransactions}
-                  className="flex items-center space-x-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>View All</span>
-                </Button>
+
               </div>
               <div className="space-y-3">
                 {recentTransactions.slice(0, 5).map((transaction) => (
@@ -407,48 +390,10 @@ const EnhancedDashboard = ({ onLogout, onNavigateToTransactions, onNavigateToBud
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                Quick Actions
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Button
-                  onClick={onNavigateToTransactions}
-                  className="flex items-center justify-center space-x-2 h-12"
-                >
-                  <Plus className="h-5 w-5" />
-                  <span>Add Transaction</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={onNavigateToReports}
-                  className="flex items-center justify-center space-x-2 h-12"
-                >
-                  <PieChart className="h-5 w-5" />
-                  <span>View Reports</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={onNavigateToBudgets}
-                  className="flex items-center justify-center space-x-2 h-12"
-                >
-                  <BarChart3 className="h-5 w-5" />
-                  <span>Set Budget</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleExportData}
-                  className="flex items-center justify-center space-x-2 h-12"
-                >
-                  <Download className="h-5 w-5" />
-                  <span>Export Data</span>
-                </Button>
-              </div>
-            </div>
-          </div>
-    </AppLayout>
+
+        </div>
+      </div>
+    </div>
   );
 };
 
