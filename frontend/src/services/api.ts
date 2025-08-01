@@ -18,7 +18,7 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
@@ -48,6 +48,56 @@ class ApiService {
       return data;
     } catch (error) {
       console.error('API request failed:', error);
+      throw error;
+    }
+  }
+
+  // Special method for downloading files (like CSV exports)
+  async download(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<{ blob: Blob; filename: string }> {
+    const url = `${this.baseURL}${endpoint}`;
+
+    const config: RequestInit = {
+      headers: {
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    // Add auth token if available
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${token}`,
+      };
+    }
+
+    try {
+      const response = await fetch(url, config);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+
+      // Extract filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'export.pdf';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      return { blob, filename };
+    } catch (error) {
+      console.error('Download request failed:', error);
       throw error;
     }
   }
@@ -124,7 +174,14 @@ export const analyticsAPI = {
     if (format) params.append('format', format);
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
-    return apiService.get(`/analytics/export?${params}`);
+
+    if (format === 'pdf' || format === 'csv') {
+      // Use download method for PDF and CSV files
+      return apiService.download(`/analytics/export?${params}`);
+    } else {
+      // Use regular request for JSON
+      return apiService.get(`/analytics/export?${params}`);
+    }
   }
 };
 

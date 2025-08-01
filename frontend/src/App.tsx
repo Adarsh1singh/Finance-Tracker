@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from 'sonner';
 
 // Pages
 import AuthPage from './pages/AuthPage';
@@ -97,17 +97,11 @@ function App() {
   return (
     <>
       {renderPage()}
-
       <Toaster
         position="top-center"
-        reverseOrder={false}
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#363636',
-            color: '#fff',
-          },
-        }}
+        richColors
+        closeButton
+        duration={4000}
       />
     </>
   );

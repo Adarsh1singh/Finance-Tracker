@@ -10,7 +10,7 @@ import { analyticsAPI } from '@/services/api';
 import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/Label';
 import { formatCurrency } from '@/lib/utils';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface ChartData {
   category?: string;
@@ -93,17 +93,21 @@ const ReportsPage = () => {
 
   const handleExportReport = async () => {
     try {
-      const response = await analyticsAPI.exportData('csv');
-      if (response.success) {
-        const blob = new Blob([response.data as string], { type: 'text/csv' });
+      const response = await analyticsAPI.exportData('pdf');
+
+      // Handle PDF download
+      if ('blob' in response) {
+        const { blob, filename } = response as { blob: Blob; filename: string };
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `expense-report-${period}.csv`;
+        a.download = filename || `expense-report-${period}-${new Date().toISOString().split('T')[0]}.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        toast.success('Report exported successfully');
+      } else if (response.success) {
         toast.success('Report exported successfully');
       }
     } catch (error) {

@@ -16,7 +16,7 @@ import {
   TopSpendingChart,
   CumulativeBalanceChart
 } from '@/components/charts';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface DashboardData {
   summary: {
@@ -129,12 +129,25 @@ const EnhancedDashboard = () => {
 
   const handleExportData = async () => {
     try {
-      const response = await analyticsAPI.exportData('csv');
-      if (response.success) {
+      const response = await analyticsAPI.exportData('pdf');
+
+      // Handle PDF download
+      if ('blob' in response) {
+        const { blob, filename } = response as { blob: Blob; filename: string };
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename || `transactions-${period}-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
         toast.success('Data exported successfully');
-        // In a real app, you'd trigger a download here
+      } else if (response.success) {
+        toast.success('Data exported successfully');
       }
     } catch (error) {
+      console.error('Export failed:', error);
       toast.error('Failed to export data');
     }
   };
@@ -174,7 +187,7 @@ const EnhancedDashboard = () => {
               <select
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
-                className="border border-slate-300 rounded-xl px-4 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                className="border cursor-pointer border-slate-300 rounded-xl px-4 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
               >
                 <option value="week">This Week</option>
                 <option value="month">This Month</option>

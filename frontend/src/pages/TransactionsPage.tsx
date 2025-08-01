@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   Search,
@@ -9,14 +9,17 @@ import {
   DollarSign,
   ChevronLeft,
   ChevronRight,
+  Download,
+  ChevronDown,
 } from "lucide-react";
-import { transactionAPI, categoryAPI } from "@/services/api";
+import { debounce } from "lodash";
+import { transactionAPI, categoryAPI, analyticsAPI } from "@/services/api";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import Modal from "@/components/ui/Modal";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 interface Transaction {
   id: number;
@@ -81,6 +84,14 @@ const TransactionsPage = () => {
     date: new Date().toISOString().split("T")[0],
   });
 
+  // Create debounced search function
+  const debouncedLoadTransactions = useCallback(
+    debounce(() => {
+      loadTransactions();
+    }, 500),
+    [pagination.page, pagination.limit, filterType, filterCategory]
+  );
+
   useEffect(() => {
     loadData();
   }, []);
@@ -88,13 +99,16 @@ const TransactionsPage = () => {
   // Load data when pagination or filters change
   useEffect(() => {
     loadTransactions();
-  }, [
-    pagination.page,
-    pagination.limit,
-    searchTerm,
-    filterType,
-    filterCategory,
-  ]);
+  }, [pagination.page, pagination.limit, filterType, filterCategory]);
+
+  // Debounced search effect
+  useEffect(() => {
+    if (searchTerm) {
+      debouncedLoadTransactions();
+    } else {
+      loadTransactions();
+    }
+  }, [searchTerm, debouncedLoadTransactions]);
 
   const loadData = async () => {
     try {
@@ -307,6 +321,31 @@ const TransactionsPage = () => {
     setShowCategoryModal(true);
   };
 
+  const handleExportTransactions = async () => {
+    try {
+      const response = await analyticsAPI.exportData('pdf');
+
+      // Handle PDF download
+      if ('blob' in response) {
+        const { blob, filename } = response as { blob: Blob; filename: string };
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename || `transactions-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success('Transactions exported successfully');
+      } else if (response.success) {
+        toast.success('Transactions exported successfully');
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export transactions');
+    }
+  };
+
   const availableCategories = categories.filter(
     (cat) =>
       filterType === "ALL" ||
@@ -370,7 +409,7 @@ const TransactionsPage = () => {
           <div className="px-4 py-6 sm:px-0">
             {/* Filters */}
             <div className="bg-white p-4 rounded-lg shadow mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div>
                   <Label htmlFor="search">Search</Label>
                   <div className="relative">
@@ -387,52 +426,61 @@ const TransactionsPage = () => {
 
                 <div>
                   <Label htmlFor="type-filter">Type</Label>
-                  <select
-                    id="type-filter"
-                    value={filterType}
-                    onChange={(e) =>
-                      handleTypeFilterChange(e.target.value as any)
-                    }
-                    className="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  >
-                    <option value="ALL">All Types</option>
-                    <option value="INCOME">Income</option>
-                    <option value="EXPENSE">Expense</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="type-filter"
+                      value={filterType}
+                      onChange={(e) =>
+                        handleTypeFilterChange(e.target.value as any)
+                      }
+                      className="h-11 w-full cursor-pointer rounded-xl border-2 border-slate-300 bg-white px-4 pr-10 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 transition-all duration-200 shadow-sm hover:border-slate-400 appearance-none"
+                    >
+                      <option value="ALL">All Types</option>
+                      <option value="INCOME">Income</option>
+                      <option value="EXPENSE">Expense</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  </div>
                 </div>
 
                 <div>
                   <Label htmlFor="category-filter">Category</Label>
-                  <select
-                    id="category-filter"
-                    value={filterCategory}
-                    onChange={(e) => handleCategoryFilterChange(e.target.value)}
-                    className="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  >
-                    <option value="">All Categories</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.name}>
-                        {category.icon} {category.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="category-filter"
+                      value={filterCategory}
+                      onChange={(e) => handleCategoryFilterChange(e.target.value)}
+                      className="h-11 w-full cursor-pointer rounded-xl border-2 border-slate-300 bg-white px-4 pr-10 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 transition-all duration-200 shadow-sm hover:border-slate-400 appearance-none"
+                    >
+                      <option value="">All Categories</option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.name}>
+                          {category.icon} {category.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  </div>
                 </div>
 
                 <div>
                   <Label htmlFor="items-per-page">Items per page</Label>
-                  <select
-                    id="items-per-page"
-                    value={pagination.limit}
-                    onChange={(e) =>
-                      handleItemsPerPageChange(Number(e.target.value))
-                    }
-                    className="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  >
-                    <option value={5}>5 per page</option>
-                    <option value={10}>10 per page</option>
-                    <option value={20}>20 per page</option>
-                    <option value={50}>50 per page</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="items-per-page"
+                      value={pagination.limit}
+                      onChange={(e) =>
+                        handleItemsPerPageChange(Number(e.target.value))
+                      }
+                      className="h-11 w-full cursor-pointer rounded-xl border-2 border-slate-300 bg-white px-4 pr-10 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500 transition-all duration-200 shadow-sm hover:border-slate-400 appearance-none"
+                    >
+                      <option value={5}>5 per page</option>
+                      <option value={10}>10 per page</option>
+                      <option value={20}>20 per page</option>
+                      <option value={50}>50 per page</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  </div>
                 </div>
 
                 <div className="flex items-end">
@@ -442,6 +490,17 @@ const TransactionsPage = () => {
                     className="w-full"
                   >
                     Clear Filters
+                  </Button>
+                </div>
+
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={handleExportTransactions}
+                    className="w-full flex items-center justify-center space-x-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Export PDF</span>
                   </Button>
                 </div>
               </div>
@@ -512,7 +571,7 @@ const TransactionsPage = () => {
                           category: "",
                         })
                       }
-                      className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      className="w-full cursor-pointer border border-slate-300 rounded-xl px-4 py-3 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                       required
                     >
                       <option value="EXPENSE">Expense</option>
@@ -529,7 +588,7 @@ const TransactionsPage = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, category: e.target.value })
                         }
-                        className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                        className="w-full cursor-pointer border border-slate-300 rounded-xl px-4 py-3 text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                         required
                       >
                         <option value="">Select a category</option>

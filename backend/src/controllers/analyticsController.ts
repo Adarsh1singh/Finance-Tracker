@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
 import { TransactionType } from '@prisma/client';
+import PDFDocument from 'pdfkit';
 
 // Get Dashboard Summary
 export const getDashboardSummary = async (req: Request, res: Response): Promise<void> => {
@@ -285,6 +286,12 @@ export const exportData = async (req: Request, res: Response): Promise<void> => 
       if (endDate) where.date.lte = new Date(endDate as string);
     }
 
+    // Get user info for the report
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true }
+    });
+
     const transactions = await prisma.transaction.findMany({
       where,
       orderBy: { date: 'desc' },
@@ -300,13 +307,101 @@ export const exportData = async (req: Request, res: Response): Promise<void> => 
       }
     });
 
-    if (format === 'csv') {
-      // Convert to CSV format
+    if (format === 'pdf') {
+      // Generate PDF
+      const doc = new PDFDocument({ margin: 50 });
+      const filename = `transactions-${new Date().toISOString().split('T')[0]}.pdf`;
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+
+      // Pipe the PDF to the response
+      doc.pipe(res);
+
+      // Add title and header
+      doc.fontSize(20).text('Transaction Report', { align: 'center' });
+      doc.moveDown();
+
+      // Add user info and date range
+      doc.fontSize(12);
+      if (user) {
+        doc.text(`Generated for: ${user.name} (${user.email})`);
+      }
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`);
+      if (startDate || endDate) {
+        const dateRange = `Date Range: ${startDate ? new Date(startDate as string).toLocaleDateString() : 'Beginning'} - ${endDate ? new Date(endDate as string).toLocaleDateString() : 'Present'}`;
+        doc.text(dateRange);
+      }
+      doc.moveDown();
+
+      // Add summary statistics
+      const totalIncome = transactions.filter(t => t.type === 'INCOME').reduce((sum, t) => sum + t.amount, 0);
+      const totalExpenses = transactions.filter(t => t.type === 'EXPENSE').reduce((sum, t) => sum + t.amount, 0);
+      const balance = totalIncome - totalExpenses;
+
+      doc.fontSize(14).text('Summary', { underline: true });
+      doc.fontSize(12);
+      doc.text(`Total Income: $${totalIncome.toFixed(2)}`);
+      doc.text(`Total Expenses: $${totalExpenses.toFixed(2)}`);
+      doc.fillColor(balance >= 0 ? 'green' : 'red').text(`Net Balance: $${balance.toFixed(2)}`).fillColor('black');
+      doc.text(`Total Transactions: ${transactions.length}`);
+      doc.moveDown();
+
+      // Add transactions table
+      doc.fontSize(14).text('Transactions', { underline: true });
+      doc.fontSize(10);
+
+      // Table headers
+      const tableTop = doc.y + 10;
+      const tableLeft = 50;
+      const colWidths = [60, 120, 80, 80, 80, 60, 80];
+      const headers = ['Date', 'Name', 'Category', 'Type', 'Amount', 'ID', 'Description'];
+
+      let currentY = tableTop;
+
+      // Draw headers
+      headers.forEach((header, i) => {
+        const x = tableLeft + colWidths.slice(0, i).reduce((sum, w) => sum + w, 0);
+        doc.text(header, x, currentY, { width: colWidths[i], align: 'left' });
+      });
+
+      currentY += 20;
+
+      // Draw transactions
+      transactions.forEach((transaction) => {
+        if (currentY > 700) { // Start new page if needed
+          doc.addPage();
+          currentY = 50;
+        }
+
+        const rowData = [
+          new Date(transaction.date).toLocaleDateString(),
+          transaction.name.substring(0, 20) + (transaction.name.length > 20 ? '...' : ''),
+          transaction.category.substring(0, 15) + (transaction.category.length > 15 ? '...' : ''),
+          transaction.type,
+          `$${transaction.amount.toFixed(2)}`,
+          transaction.id.toString(),
+          (transaction.description || '').substring(0, 15) + ((transaction.description || '').length > 15 ? '...' : '')
+        ];
+
+        rowData.forEach((data, i) => {
+          const x = tableLeft + colWidths.slice(0, i).reduce((sum, w) => sum + w, 0);
+          const color = transaction.type === 'INCOME' ? 'green' : 'red';
+          doc.fillColor(i === 4 ? color : 'black').text(data, x, currentY, { width: colWidths[i], align: 'left' });
+        });
+
+        currentY += 15;
+      });
+
+      // Finalize the PDF
+      doc.end();
+    } else if (format === 'csv') {
+      // Convert to CSV format (keeping for backward compatibility)
       const csvHeader = 'ID,Name,Amount,Description,Category,Type,Date,Created At\n';
-      const csvData = transactions.map(t => 
+      const csvData = transactions.map(t =>
         `${t.id},"${t.name}",${t.amount},"${t.description || ''}","${t.category}","${t.type}","${t.date.toISOString()}","${t.createdAt.toISOString()}"`
       ).join('\n');
-      
+
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename=transactions.csv');
       res.send(csvHeader + csvData);

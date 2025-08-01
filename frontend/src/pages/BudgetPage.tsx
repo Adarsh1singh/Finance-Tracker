@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { formatCurrency } from '@/lib/utils';
 import Modal from '@/components/ui/Modal';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface Budget {
   id: number;
